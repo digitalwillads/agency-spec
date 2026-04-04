@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Agency Command Center - Product Spec v3</title>
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+  :root {
+    --bg: #1a2636;
+    --surface: #141e2b;
+    --surface2: #1f2d3d;
+    --border: #2a3a4d;
+    --text: #c9d1db;
+    --text-dim: #6b7d8f;
+    --accent: #14b8a6;
+    --green: #14b8a6;
+    --orange: #e6a731;
+    --red: #e05252;
+    --purple: #9b8ec4;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.7; font-size: 16px; }
+  nav { position: fixed; top: 0; left: 0; width: 250px; height: 100vh; background: var(--surface); border-right: 1px solid var(--border); padding: 24px 0; overflow-y: auto; z-index: 100; }
+  nav h2 { font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); padding: 0 20px; margin-bottom: 12px; }
+  nav a { display: block; padding: 5px 20px; color: var(--text-dim); text-decoration: none; font-size: 12px; border-left: 3px solid transparent; transition: all 0.2s; }
+  nav a:hover, nav a.active { color: var(--text); background: rgba(79,143,247,0.08); border-left-color: var(--accent); }
+  nav a.indent { padding-left: 32px; font-size: 11px; }
+  nav .ns { margin-top: 14px; padding-top: 10px; border-top: 1px solid var(--border); }
+  nav .ns-title { font-size: 9px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--text-dim); padding: 0 20px; margin-bottom: 4px; }
+  main { margin-left: 250px; max-width: 900px; padding: 48px 56px 120px; }
+  .hero { margin-bottom: 48px; padding-bottom: 32px; border-bottom: 1px solid var(--border); }
+  .hero h1 { font-size: 34px; font-weight: 700; margin-bottom: 10px; }
+  .hero .sub { font-size: 17px; color: var(--text-dim); max-width: 600px; }
+  .hero .meta { margin-top: 16px; font-size: 13px; color: var(--text-dim); }
+  .hero .meta span { margin-right: 20px; }
+  section { margin-bottom: 56px; }
+  h2 { font-size: 26px; font-weight: 700; margin-bottom: 6px; scroll-margin-top: 24px; }
+  h2 .n { color: var(--accent); margin-right: 8px; }
+  .si { font-size: 16px; color: var(--text-dim); margin-bottom: 28px; max-width: 680px; font-weight: 500; }
+  h3 { font-size: 19px; font-weight: 600; margin-top: 32px; margin-bottom: 10px; }
+  h4 { font-size: 15px; font-weight: 600; margin-top: 20px; margin-bottom: 6px; }
+  p { margin-bottom: 14px; }
+  ul, ol { margin-bottom: 14px; padding-left: 24px; }
+  li { margin-bottom: 6px; }
+  li strong { color: var(--accent); }
+  em { color: var(--text-dim); }
+  .diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 28px; margin: 20px 0; overflow-x: auto; }
+  .diagram-title { font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px; color: var(--accent); margin-bottom: 16px; }
+  .mermaid { display: flex; justify-content: center; }
+  .flow { display: flex; align-items: center; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-step { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 18px; text-align: center; min-width: 130px; }
+  .flow-step.highlight { border-color: var(--accent); background: rgba(79,143,247,0.08); }
+  .flow-step.warn { border-color: var(--orange); background: rgba(245,158,11,0.08); }
+  .flow-step.success { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .flow-arrow { font-size: 18px; color: var(--text-dim); padding: 0 6px; }
+  .flow-step .step-label { font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+  .flow-step .step-name { font-weight: 600; font-size: 13px; }
+  .cg { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .card .ct { font-weight: 600; font-size: 14px; margin-bottom: 6px; }
+  .card .cd { font-size: 13px; color: var(--text-dim); line-height: 1.6; }
+  .card.accent { border-color: var(--accent); } .card.green { border-color: var(--green); }
+  .card.orange { border-color: var(--orange); } .card.purple { border-color: var(--purple); }
+  .card.red { border-color: var(--red); }
+  .co { background: var(--surface); border-left: 4px solid var(--accent); border-radius: 0 8px 8px 0; padding: 14px 18px; margin: 18px 0; font-size: 14px; }
+  .co.principle { border-left-color: var(--purple); } .co.important { border-left-color: var(--orange); }
+  .co.critical { border-left-color: var(--red); }
+  .co .col { font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; color: var(--accent); }
+  .co.principle .col { color: var(--purple); } .co.important .col { color: var(--orange); }
+  .co.critical .col { color: var(--red); }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+  th { background: var(--surface2); text-align: left; padding: 10px 14px; font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); border-bottom: 2px solid var(--border); }
+  td { padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  tr:hover td { background: rgba(255,255,255,0.02); }
+  .compare { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 20px 0; }
+  .compare-box { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px; }
+  .compare-box .compare-title { font-weight: 700; font-size: 13px; margin-bottom: 6px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+  .compare-box.left .compare-title { color: var(--green); } .compare-box.right .compare-title { color: var(--orange); }
+  hr { border: none; height: 1px; background: var(--border); margin: 40px 0; }
+  @media (max-width: 900px) { nav { display: none; } main { margin-left: 0; padding: 24px; } }
+  .dt { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px; border-radius: 4px; margin-right: 4px; }
+  .dt.comm { background: rgba(20,184,166,0.15); color: var(--accent); }
+  .dt.monitor { background: rgba(230,167,49,0.15); color: var(--orange); }
+  .dt.setup { background: rgba(20,184,166,0.25); color: #5dd8c8; }
+  .dt.timeline { background: rgba(155,142,196,0.15); color: var(--purple); }
+  .dt.admin { background: rgba(224,82,82,0.15); color: var(--red); }
+  .pt { display: inline-block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; padding: 2px 8px; border-radius: 4px; }
+  .pt.critical { background: rgba(224,82,82,0.2); color: var(--red); }
+  .pt.high { background: rgba(230,167,49,0.2); color: var(--orange); }
+  .pt.normal { background: rgba(20,184,166,0.15); color: var(--accent); }
+  .pt.low { background: rgba(107,125,143,0.15); color: var(--text-dim); }
+  /* Rules box */
+  .rules { background: var(--surface); border: 2px solid var(--accent); border-radius: 12px; padding: 24px 28px; margin: 24px 0; }
+  .rules ol { counter-reset: rule; list-style: none; padding: 0; }
+  .rules li { counter-increment: rule; margin-bottom: 12px; padding-left: 36px; position: relative; font-size: 15px; }
+  .rules li::before { content: counter(rule); position: absolute; left: 0; top: 1px; width: 24px; height: 24px; background: var(--accent); color: white; border-radius: 50%; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+  /* Mockup */
+  .mockup-frame { background: #111b27; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; margin: 20px 0; }
+  .mockup-titlebar { background: var(--surface); padding: 8px 14px; display: flex; align-items: center; gap: 6px; border-bottom: 1px solid var(--border); }
+  .mockup-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .mockup-dot.r { background: #ef4444; } .mockup-dot.y { background: #f59e0b; } .mockup-dot.g { background: #34d399; }
+  .mockup-body { display: flex; min-height: 420px; }
+  .mockup-sidebar { width: 240px; background: var(--surface); border-right: 1px solid var(--border); padding: 10px; flex-shrink: 0; font-size: 12px; }
+  .mockup-main { flex: 1; padding: 20px; }
+  .mockup-thread { padding: 8px 10px; border-radius: 5px; margin-bottom: 3px; font-size: 12px; }
+  .mockup-thread:hover { background: rgba(255,255,255,0.04); }
+  .mockup-thread.active { background: rgba(79,143,247,0.12); border-left: 2px solid var(--accent); }
+  .mockup-thread .tt { font-weight: 600; font-size: 12px; margin-bottom: 1px; }
+  .mockup-thread .tm { font-size: 10px; color: var(--text-dim); }
+  .mockup-msg { margin-bottom: 14px; max-width: 560px; }
+  .mockup-msg.user { margin-left: auto; text-align: right; }
+  .mockup-msg .mb { display: inline-block; padding: 8px 14px; border-radius: 10px; font-size: 13px; max-width: 480px; text-align: left; }
+  .mockup-msg.user .mb { background: var(--accent); color: #fff; }
+  .mockup-msg.ai .mb { background: var(--surface2); color: var(--text); }
+  .mockup-tool { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--green); border-radius: 5px; padding: 8px 12px; margin: 6px 0; font-size: 12px; }
+  .mockup-tool .ts { color: var(--green); font-weight: 600; font-size: 11px; }
+  .new-chat-btn { display: block; padding: 7px; background: var(--accent); color: white; border-radius: 5px; font-size: 12px; font-weight: 600; text-align: center; margin-bottom: 6px; }
+  .filter-bar { display: flex; gap: 3px; margin-bottom: 8px; flex-wrap: wrap; }
+  .filter-pill { font-size: 9px; padding: 2px 7px; border-radius: 10px; background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border); }
+  .filter-pill.active { background: rgba(79,143,247,0.15); color: var(--accent); border-color: var(--accent); }
+  .sdiv { font-size: 9px; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); padding: 6px 3px 3px; margin-top: 6px; border-top: 1px solid var(--border); }
+  /* Clickable diagrams */
+  .diagram { cursor: pointer; transition: border-color 0.2s; }
+  .diagram:hover { border-color: var(--accent); }
+  .diagram::after { content: 'Click to enlarge'; position: absolute; top: 8px; right: 12px; font-size: 10px; color: var(--text-dim); opacity: 0; transition: opacity 0.2s; text-transform: uppercase; letter-spacing: 1px; }
+  .diagram { position: relative; }
+  .diagram:hover::after { opacity: 1; }
+  /* Lightbox */
+  .lightbox { display: none; position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(0,0,0,0.85); z-index: 9999; justify-content: center; align-items: center; cursor: pointer; backdrop-filter: blur(4px); }
+  .lightbox.open { display: flex; }
+  .lightbox-content { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 40px 48px; width: 90vw; height: 90vh; overflow: auto; cursor: default; transform: scale(0.95); opacity: 0; transition: transform 0.2s ease, opacity 0.2s ease; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+  .lightbox-content .diagram, .lightbox-content .mockup-frame { width: 100%; max-width: none; border: none; margin: 0; cursor: default; }
+  .lightbox-content .diagram:hover { border-color: transparent; }
+  .lightbox-content .diagram::after, .lightbox-content .mockup-frame::after { display: none; }
+  .lightbox-content .mermaid svg { width: 100% !important; height: auto !important; max-height: 80vh; }
+  .lightbox-content .mockup-body { min-height: 70vh; }
+  .lightbox.open .lightbox-content { transform: scale(1); opacity: 1; }
+  .lightbox-close { position: fixed; top: 20px; right: 28px; font-size: 28px; color: var(--text-dim); cursor: pointer; z-index: 10000; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; border-radius: 50%; background: var(--surface); border: 1px solid var(--border); }
+  .lightbox-close:hover { color: var(--text); border-color: var(--accent); }
+  /* Mockup also clickable */
+  .mockup-frame { cursor: pointer; transition: border-color 0.2s; position: relative; }
+  .mockup-frame:hover { border-color: var(--accent); }
+  .mockup-frame::after { content: 'Click to enlarge'; position: absolute; top: 8px; right: 12px; font-size: 10px; color: var(--text-dim); opacity: 0; transition: opacity 0.2s; text-transform: uppercase; letter-spacing: 1px; z-index: 1; }
+  .mockup-frame:hover::after { opacity: 1; }
+</style>
+</head>
+<body>
+
+<nav>
+  <h2>Spec v3</h2>
+  <a href="#principles">Operating Principles</a>
+  <a href="#overview">System Overview</a>
+  <a href="#domains-glance">Five Domains at a Glance</a>
+
+  <div class="ns">
+    <div class="ns-title">The Task System</div>
+    <a href="#tasks">How Tasks Work</a>
+    <a href="#priority" class="indent">Priority & Urgency</a>
+    <a href="#lifecycle" class="indent">Task Lifecycle</a>
+    <a href="#dedup" class="indent">Deduplication</a>
+    <a href="#cross-tools" class="indent">Cross-Domain Tools</a>
+    <a href="#team" class="indent">Team & Assignment</a>
+  </div>
+
+  <div class="ns">
+    <div class="ns-title">Domain Deep-Dives</div>
+    <a href="#communication">Communication</a>
+    <a href="#trashman" class="indent">TrashMan</a>
+    <a href="#comm-agent" class="indent">Comm Agent Logic</a>
+    <a href="#meetings" class="indent">Meetings</a>
+    <a href="#monitoring">Monitoring</a>
+    <a href="#setup">Setup & Actions</a>
+    <a href="#timeline">Timeline & Reporting</a>
+    <a href="#admin">Administration</a>
+  </div>
+
+  <div class="ns">
+    <div class="ns-title">Cross-Domain Intelligence</div>
+    <a href="#connections">Cross-Domain Intelligence</a>
+    <a href="#emergent" class="indent">Emergent Properties</a>
+    <a href="#preflight" class="indent">Pre-Flight Checks</a>
+  </div>
+
+  <div class="ns">
+    <div class="ns-title">The Interface</div>
+    <a href="#interface">Layout & Views</a>
+    <a href="#sidebar" class="indent">Sidebar & Filtering</a>
+    <a href="#birdseye" class="indent">Bird's-Eye View</a>
+    <a href="#working" class="indent">Working Tasks</a>
+    <a href="#adhoc" class="indent">Quick Queries</a>
+    <a href="#mobile" class="indent">Mobile & Notifications</a>
+  </div>
+
+  <div class="ns">
+    <div class="ns-title">Safety & Completion</div>
+    <a href="#safety">Safety & Error Handling</a>
+    <a href="#circuit" class="indent">Circuit Breakers</a>
+    <a href="#e2e">End-to-End Walkthrough</a>
+    <a href="#journey">Client Lifecycle</a>
+  </div>
+</nav>
+
+<main>
+
+<div class="hero">
+  <h1>Agency Command Center</h1>
+  <p class="sub">Imagine opening one app in the morning and knowing - actually knowing - the state of every client, every campaign, every overdue invoice, and every unanswered email. That's this.</p>
+  <div class="meta"><span>Digital Will Ads</span><span>Version 3.0</span><span>April 2026</span></div>
+
+  <div class="co" style="margin-top:24px;border-left-color:var(--green);">
+    <div class="col" style="color:var(--green)">System in 30 Seconds</div>
+    <ul style="margin:0;padding-left:20px;font-size:14px;">
+      <li><strong>One app</strong> - a single chat interface replaces email clients, ad managers, project trackers, and billing dashboards</li>
+      <li><strong>Five agent domains</strong> - Communication, Monitoring, Setup, Reporting, and Admin discover work automatically</li>
+      <li><strong>One task queue</strong> - every piece of work is a prioritized chat thread. Source is metadata, not a category.</li>
+      <li><strong>Pull-based</strong> - tasks appear in a filterable sidebar. You work them when ready. Only true emergencies push.</li>
+      <li><strong>Client timelines</strong> - every action is logged per client. Agents read this shared memory before acting.</li>
+    </ul>
+  </div>
+</div>
+
+<!-- ================================================ -->
+<!-- 01. OPERATING PRINCIPLES -->
+<!-- ================================================ -->
+<section id="principles">
+  <h2><span class="n">01</span> Operating Principles</h2>
+  <p class="si">Picture this: it's 7:15 AM. You open one app. Not Gmail, not Meta Ads Manager, not a project tracker, not Stripe. One app. Here's what you see - and more importantly, here's what you don't have to go looking for.</p>
+
+  <p>Everything in this system flows from eight rules. They're not guidelines. They're the bones of the thing. Break one and the whole architecture stops making sense.</p>
+
+  <div class="rules">
+    <ol>
+      <li><strong>One app, one task queue.</strong> No more toggling between Gmail, Google Ads, and a spreadsheet to figure out what needs doing today. Stone & Tile Shoppe's budget alert, Ruthy from Nzymes asking about CPA, the ExclusiveMatchmaking onboarding steps - they all live in the same sidebar, sorted by what matters most right now.</li>
+      <li><strong>Everything is a conversation thread.</strong> Every piece of work is a task. Every task is a chat with the AI. You talk to it like a team member who already has all the context. Two exceptions: a bird's-eye client overview and a monitoring rule management view. Everything else is conversation.</li>
+      <li><strong>Pull-based, not push-based.</strong> Tasks appear in the sidebar. You work them when ready. No notifications, no badges, no anxiety-inducing red dots - except for genuine emergencies. TheRealSleep's website going down at 2 AM? That pushes. Ruthy's non-urgent question about next month's budget? It waits for you.</li>
+      <li><strong>All client communication requires human approval.</strong> The AI drafts, you send. Nzymes gets a perfectly-worded email about their Q2 strategy - but only after you've read it and hit send. No automated messages go to clients. Ever.</li>
+      <li><strong>Monitoring rules are deterministic thresholds, not AI judgment.</strong> "Fire when Stone & Tile's frequency exceeds 3.0" - that's a rule. Not "notice if things seem off." Every rule fires on a specific, predictable condition. The AI helps fix the issue once detected, but detection itself is a concrete threshold you set.</li>
+      <li><strong>Admin watches and alerts. It never acts.</strong> ExclusiveMatchmaking's invoice is 15 days overdue? Admin tells you. It tells Reporting to hold the cheerful weekly update. But it never sends a payment reminder, never pauses a campaign, never contacts the client about money. That's yours.</li>
+      <li><strong>Every action is logged to the client timeline.</strong> Eddie sent Nzymes an email from Gmail on his phone? Logged. Monitoring auto-fixed Stone & Tile's budget overspend at 3 AM? Logged. You approved a weekly report for TheRealSleep? Logged. One chronological record per client. Nothing is lost. Nothing is siloed.</li>
+      <li><strong>The system fails visibly, never silently.</strong> When something goes wrong - an API is down, an auto-fix didn't work, a merge was wrong - you see it. Clear language, clear options. No swallowed errors, no silent retries you never hear about.</li>
+    </ol>
+  </div>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 02. SYSTEM OVERVIEW -->
+<!-- ================================================ -->
+<section id="overview">
+  <h2><span class="n">02</span> System Overview</h2>
+  <p class="si">Think about how you run the agency today. Email in one place, ad performance in another, billing somewhere else, and the state of each client living mostly in your head. Now imagine all of it flowing into one stream, automatically prioritized, with an AI that already pulled the context before you even clicked.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">System Architecture</div>
+    <div class="mermaid">
+graph TB
+    subgraph IN["External World"]
+        EMAIL["Email"] ; SMS["SMS"] ; WA["WhatsApp"] ; MEET["Meetings"]
+        GADS["Google Ads"] ; FADS["Facebook Ads"] ; WEB["Websites"]
+        BILL["Billing"] ; CONT["Contracts"]
+    end
+    subgraph DOM["Agent Domains"]
+        COMM["Communication"] ; MON["Monitoring"] ; SETUP["Setup"]
+        REPORT["Reporting"] ; ADMIN["Admin"]
+    end
+    subgraph CORE["Core"]
+        TASKS["Task Queue"] ; TL["Timelines"]
+    end
+    subgraph UI["Interface"]
+        SB["Sidebar"] ; BE["Bird's-Eye"] ; THR["Chat Thread"]
+    end
+    EMAIL --> COMM ; SMS --> COMM ; WA --> COMM ; MEET --> COMM
+    GADS --> MON ; FADS --> MON ; WEB --> MON
+    BILL --> ADMIN ; CONT --> ADMIN
+    COMM --> TASKS ; MON --> TASKS ; SETUP --> TASKS ; REPORT --> TASKS ; ADMIN --> TASKS
+    TASKS --> SB ; TASKS --> BE ; SB --> THR ; TASKS <--> TL
+    style IN fill:#1a1d27,stroke:#2d3248,color:#e2e4ed
+    style DOM fill:#1a1d27,stroke:#4f8ff7,color:#e2e4ed
+    style CORE fill:#1a1d27,stroke:#34d399,color:#e2e4ed
+    style UI fill:#1a1d27,stroke:#a78bfa,color:#e2e4ed
+    </div>
+  </div>
+
+  <p>Every piece of work follows one path: a domain discovers it, creates a task with a priority, the task appears in the sidebar sorted by urgency, you work it through a chat thread, and the outcome is logged to the client's timeline. That's it. That's the whole pattern. Whether it's Ruthy asking about leads or TheRealSleep's website throwing 503s - same flow, same interface, different urgency.</p>
+
+  <h3>What Is a "Client"?</h3>
+  <p>A client is a company the agency works with - Stone & Tile Shoppe, Nzymes, ExclusiveMatchmaking, TheRealSleep. Each client can have multiple <strong>contacts</strong> (the CEO, the marketing manager, accounts payable). When Ruthy from Nzymes sends an email, it's attributed to Ruthy as the contact. But the timeline belongs to Nzymes as a whole - one timeline per company, so anyone working the account sees the full picture.</p>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 03. FIVE DOMAINS AT A GLANCE -->
+<!-- ================================================ -->
+<section id="domains-glance">
+  <h2><span class="n">03</span> Five Domains at a Glance</h2>
+  <p class="si">Five agents constantly watching the outside world. Each one knows how to find work, create tasks, and hand them to you in a unified queue. You never think about which domain you're in. You just see what needs doing.</p>
+
+  <div class="cg">
+    <div class="card accent">
+      <div class="ct"><span class="dt comm">COMM</span> Communication</div>
+      <div class="cd">Ruthy from Nzymes texts at 11 PM, Stone & Tile's owner emails a question, ExclusiveMatchmaking sends a WhatsApp voice note. This domain catches all of it - email, SMS, WhatsApp, meetings - filters the junk, and turns the rest into tasks ready for you to handle.</div>
+    </div>
+    <div class="card orange">
+      <div class="ct"><span class="dt monitor">MON</span> Monitoring</div>
+      <div class="cd">Stone & Tile's Google Ads budget is pacing 35% over. TheRealSleep's landing page is throwing 503 errors. Nzymes' Facebook frequency hit 3.2. This domain watches every ad account, every website, every conversion pixel - and either fixes it automatically or asks you what to do.</div>
+    </div>
+    <div class="card green">
+      <div class="ct"><span class="dt setup">SETUP</span> Setup & Actions</div>
+      <div class="cd">New client just signed? This domain walks you through every step: billing setup, ad account access, conversion tracking, creative production, campaign launch. Structured workflows for known processes, open AI workspace for anything novel.</div>
+    </div>
+    <div class="card purple">
+      <div class="ct"><span class="dt timeline">RPT</span> Timeline & Reporting</div>
+      <div class="cd">Keeps the memory of every client alive. Maintains timelines, drafts periodic updates ("Here's how Nzymes did this month"), follows up when clients owe you assets or approvals. The client-facing communication arm - but only with your approval.</div>
+    </div>
+    <div class="card red">
+      <div class="ct"><span class="dt admin">ADM</span> Administration</div>
+      <div class="cd">ExclusiveMatchmaking's invoice is 15 days overdue. TheRealSleep's contract expires in 60 days. This domain watches billing, payments, and contracts. It alerts you and tells Reporting to adjust its tone. But it never acts on money - that's yours.</div>
+    </div>
+  </div>
+
+  <p>Each domain is covered in detail in the <em>Domain Deep-Dives</em> sections below. But first - the task system that ties them all together. Understanding this makes everything else click.</p>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 04. THE TASK SYSTEM -->
+<!-- ================================================ -->
+<section id="tasks">
+  <h2><span class="n">04</span> The Task System: One Type, One Queue</h2>
+  <p class="si">Here's the core insight: it doesn't matter if the work came from an email, a monitoring alert, or a billing issue. It's all a task. It's all a chat thread. And it's all in the same sidebar. The source is just metadata - a tag that tells you where it came from, not a separate place you need to go.</p>
+
+  <h3>What a Task Contains</h3>
+  <p>When Ruthy from Nzymes emails about her CPA, or when Monitoring catches Stone & Tile's budget overspend, the resulting task always has the same shape:</p>
+  <table>
+    <tr><th>Field</th><th>Description</th></tr>
+    <tr><td><strong>Title</strong></td><td>Brief description of the work - "Nzymes - Reply to Ruthy" or "Stone & Tile - Budget Pacing"</td></tr>
+    <tr><td><strong>Client</strong></td><td>Which client (can be null for internal tasks like "Review vendor contract")</td></tr>
+    <tr><td><strong>Priority</strong></td><td>Critical, High, Normal, or Low</td></tr>
+    <tr><td><strong>Source</strong></td><td>Which domain created it + what triggered it (COMM/email, MON/budget-rule, etc.)</td></tr>
+    <tr><td><strong>Status</strong></td><td>Current lifecycle state</td></tr>
+    <tr><td><strong>Assignee</strong></td><td>Who is responsible (defaults to Will)</td></tr>
+    <tr><td><strong>Context</strong></td><td>The trigger data - the email Ruthy sent, the monitoring chart, the meeting transcript excerpt</td></tr>
+    <tr><td><strong>Conversation</strong></td><td>The chat thread between you and the AI as you work through it</td></tr>
+  </table>
+
+  <h3>How Tasks Are Created</h3>
+  <p>You never have to decide "is this an email thing or a monitoring thing?" The domains do that work for you:</p>
+  <table>
+    <tr><th>Source</th><th>Creates Tasks From</th><th>Default Priority</th></tr>
+    <tr><td><span class="dt comm">COMM</span></td><td>Inbound messages needing response - Ruthy's CPA question, a prospect inquiry, a client complaint</td><td>Set by urgency detection</td></tr>
+    <tr><td><span class="dt monitor">MON</span></td><td>Rule violations - budget overspend, site down, conversion drop, frequency too high</td><td>Set by rule severity</td></tr>
+    <tr><td><span class="dt setup">SETUP</span></td><td>Onboarding steps, workflow actions - "Install tracking pixel for TheRealSleep"</td><td>Normal (High if deadline near)</td></tr>
+    <tr><td><span class="dt timeline">RPT</span></td><td>Report drafts, client follow-ups - "Weekly report ready for ExclusiveMatchmaking"</td><td>Normal</td></tr>
+    <tr><td><span class="dt admin">ADM</span></td><td>Billing issues, contract events - "Nzymes invoice 7 days overdue"</td><td>Based on urgency tier</td></tr>
+    <tr><td><strong>Manual</strong></td><td>You create directly - "Research new landing page builder for Stone & Tile"</td><td>Normal (you adjust)</td></tr>
+  </table>
+
+  <h3>Tasks as Chat Threads</h3>
+  <p>Here's the magic. You click "Stone & Tile - Budget Pacing" in the sidebar, and you're in a conversation with an AI that already knows: Stone & Tile's timeline for the past 30 days, their active campaigns, their budget allocation, what the monitoring rule detected, and what it already did about it. The AI has preprocessed everything before you opened the thread.</p>
+
+  <h4>What Preprocessing Produces</h4>
+  <p>Before you even click, the AI has gathered context based on what kind of task it is:</p>
+  <ul>
+    <li><strong>Communication task</strong> - Ruthy's email plus her recent message history, active tasks for Nzymes, and a suggested reply draft or summary of what she needs</li>
+    <li><strong>Monitoring (auto-fix)</strong> - what was detected ("budget pacing 35% over"), what was done ("reduced daily cap from $85 to $62"), and current metric state</li>
+    <li><strong>Monitoring (ask-permission)</strong> - what was detected, the proposed fix with reasoning, and historical data so you can decide</li>
+    <li><strong>Meeting action items</strong> - batch of items with transcript excerpts and recording links at the exact timestamp</li>
+    <li><strong>Admin task</strong> - billing/contract data, relevant history, and suggested next steps</li>
+  </ul>
+
+  <h3 id="cross-tools">Cross-Domain Tool Access</h3>
+  <p>Imagine you're working an Admin task - ExclusiveMatchmaking's invoice is overdue. You decide to email them about it. You don't need to leave the task and go to a "communications" section. The AI surfaces Communication tools right there in the thread. You say "draft a gentle reminder about the invoice," it drafts the email, you approve, it sends. Admin created the task; Communication tools helped you resolve it. The AI surfaces tools based on what the conversation needs, not which domain created the task.</p>
+</section>
+
+<!-- ================================================ -->
+<!-- 04a. PRIORITY -->
+<!-- ================================================ -->
+<section id="priority">
+  <h3>Priority & Urgency</h3>
+  <p>Not all work is equal. TheRealSleep's website being down is not the same as a routine weekly report for Nzymes. The priority system makes sure you always know what to handle first.</p>
+  <table>
+    <tr><th>Priority</th><th>Meaning</th><th>Sidebar</th><th>Escalation</th></tr>
+    <tr><td><span class="pt critical">CRITICAL</span></td><td>TheRealSleep's site is down. ExclusiveMatchmaking's ad account got suspended. A client is threatening to leave.</td><td>Pinned to the top, red</td><td><strong>Push notification + sound.</strong> The one exception to pull-based. These demand immediate attention.</td></tr>
+    <tr><td><span class="pt high">HIGH</span></td><td>Ruthy needs a timely answer. Stone & Tile's budget is off. A deadline is approaching.</td><td>Above normal, orange</td><td>No push. But prominent in the sidebar - you'll see it.</td></tr>
+    <tr><td><span class="pt normal">NORMAL</span></td><td>Standard work - weekly reports, routine follow-ups, non-urgent onboarding steps.</td><td>Default position</td><td>None</td></tr>
+    <tr><td><span class="pt low">LOW</span></td><td>FYI items, non-urgent admin, background stuff that can wait.</td><td>Bottom</td><td>None</td></tr>
+  </table>
+
+  <h4>Priority Escalation Over Time</h4>
+  <p>Things that sit too long don't just disappear - they get louder. Ruthy's email goes unanswered for 24+ hours? It escalates from Normal to High. A monitoring ask-permission task where the condition is getting worse? Normal to High. The principle is simple: <strong>aging problems should not stay invisible.</strong> Configurable rules control the timing, but the idea is baked in.</p>
+
+  <h4>User Override</h4>
+  <p>You can change any task's priority. If you bump Ruthy's email down to Low because you know she's on vacation and it's not urgent, that override is <strong>sticky</strong> - the system won't re-escalate it. The system does not fight you.</p>
+</section>
+
+<!-- ================================================ -->
+<!-- 04b. LIFECYCLE -->
+<!-- ================================================ -->
+<section id="lifecycle">
+  <h3>Task Lifecycle</h3>
+  <p>A task's life, from the moment it's created to the moment it's done and logged to the timeline:</p>
+  <div class="diagram">
+    <div class="diagram-title">Task States</div>
+    <div class="mermaid">
+stateDiagram-v2
+    [*] --> Pending: Created
+    Pending --> Ready: AI preprocesses
+    Ready --> InProgress: User opens
+    InProgress --> Blocked: Waiting on external
+    Blocked --> InProgress: Unblocked
+    InProgress --> Completed: Done
+    InProgress --> Deferred: Snoozed
+    Deferred --> Ready: Snooze expires
+    Completed --> [*]: Logged to timeline
+    </div>
+  </div>
+  <table>
+    <tr><th>State</th><th>Meaning</th><th>Sidebar</th></tr>
+    <tr><td><strong>Pending</strong></td><td>Just created - the AI is gathering context. Like when Ruthy's email just came in and the agent is pulling her history.</td><td>Visible (dimmed)</td></tr>
+    <tr><td><strong>Ready</strong></td><td>Context gathered, draft response ready, metrics pulled. Good to go.</td><td>Visible (full)</td></tr>
+    <tr><td><strong>In Progress</strong></td><td>You've opened it and you're working it.</td><td>Highlighted</td></tr>
+    <tr><td><strong>Blocked</strong></td><td>Waiting on something external. Nzymes hasn't sent the creative assets you asked for. Reason recorded.</td><td>Blocked indicator</td></tr>
+    <tr><td><strong>Deferred</strong></td><td>You chose "later" - maybe Stone & Tile said to revisit the budget conversation next week. Has a resurface date.</td><td>Hidden until that date</td></tr>
+    <tr><td><strong>Completed</strong></td><td>Done. Reply sent, budget fixed, report approved. Logged to the client's timeline.</td><td>Removed (searchable in archive)</td></tr>
+  </table>
+  <h4>Staleness</h4>
+  <p>If a task sits unworked for 48+ hours, it re-preprocesses when you finally open it. You always see current information, not stale data from two days ago.</p>
+  <h4>Archive</h4>
+  <p>Completed tasks are permanently searchable by client, date, keyword, or domain. Need to find that conversation with Ruthy about CPA from three months ago? It's there. A "recently completed" section provides quick access to the last few days.</p>
+</section>
+
+<!-- ================================================ -->
+<!-- 04c. DEDUP -->
+<!-- ================================================ -->
+<section id="dedup">
+  <h3>Deduplication</h3>
+  <p>Here's a real scenario: Ruthy from Nzymes emails you saying "our leads dropped this week." At the same time, Monitoring independently detects that Nzymes' conversion rate dropped 40%. That's the same problem, noticed from two different directions. You don't want two separate tasks clogging your sidebar - you want one task that shows both the client's concern and the data.</p>
+  <p>The system merges them into a single task showing both sources. When you open it, you see Ruthy's email and the monitoring data side by side.</p>
+  <h4>Matching</h4>
+  <p>Same client + overlapping timeframe (24 hours) + related issue. Within monitoring rule groups, dedup is deterministic - it knows two budget rules for Stone & Tile are about the same thing. Cross-domain dedup (Ruthy's email + a monitoring alert) uses AI judgment.</p>
+  <h4>When Dedup Is Wrong</h4>
+  <ul>
+    <li><strong>False merge</strong> - the system incorrectly combined two unrelated issues? You can <strong>split</strong> them back into two tasks, each keeping its original context</li>
+    <li><strong>Missed merge</strong> - two tasks that should be one? You can <strong>manually merge</strong> them</li>
+  </ul>
+</section>
+
+<!-- ================================================ -->
+<!-- 04d. TEAM -->
+<!-- ================================================ -->
+<section id="team">
+  <h3>Team & Assignment</h3>
+  <p>Right now, you're the hub. Everything flows through you. The system is designed for that reality while leaving room for the team to take on more.</p>
+  <ul>
+    <li><strong>Default</strong> - all tasks assigned to Will unless reassigned</li>
+    <li><strong>Manual reassignment</strong> - you can reassign from within a thread or from the sidebar. "Eddie, handle the Nzymes creative refresh" - one click.</li>
+    <li><strong>Auto-assignment</strong> - future feature. V1 is all manual.</li>
+  </ul>
+  <h4>Visibility</h4>
+  <p>You see <strong>all tasks across the team</strong>. Eddie, Reileigh, Tristan, Isaac - they each see only their assigned tasks. You can filter the sidebar by team member to check on anyone's workload. Bird's-eye view shows who is assigned to what across all clients.</p>
+  <h4>Concurrent Access</h4>
+  <p>Only the assigned owner can send messages and execute tools in a task thread. Others see a read-only live view. If you need to jump in on something Eddie is handling, you reassign it to yourself first. No conflicting actions, no confusion about who's driving.</p>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 05. COMMUNICATION -->
+<!-- ================================================ -->
+<section id="communication">
+  <h2><span class="n">05</span> Communication: Inbound Messages to Tasks</h2>
+  <p class="si">It's Monday morning. 47 emails came in over the weekend. Your phone has 3 WhatsApp messages from ExclusiveMatchmaking and Ruthy from Nzymes texted at 11 PM about her CPA numbers. Here's what happens - without you lifting a finger.</p>
+
+  <p>The Communication domain ingests everything: email, SMS, WhatsApp, and meeting recordings. It filters the noise, identifies who's talking, figures out what matters, and turns actionable messages into tasks that are waiting for you in the sidebar - already preprocessed with context and draft replies.</p>
+
+  <h3>Channels</h3>
+  <table>
+    <tr><th>Channel</th><th>Scope</th></tr>
+    <tr><td><strong>Email (Gmail)</strong></td><td>Will + all team members (Eddie, Reileigh, Tristan, Isaac) - inbound and sent-mail</td></tr>
+    <tr><td><strong>SMS (iMessage)</strong></td><td>Will's accounts</td></tr>
+    <tr><td><strong>WhatsApp</strong></td><td>Will's accounts</td></tr>
+    <tr><td><strong>Meetings</strong></td><td>All recorded meetings (transcribed)</td></tr>
+  </table>
+
+  <h4>Ingestion</h4>
+  <p>Push notifications / webhooks where available for near-real-time. Polling every 1-2 minutes as fallback. When Ruthy texts at 11 PM, the task should exist before you wake up - not hours later. Sent-mail folders are polled on the same cadence so when Eddie replies to Nzymes from his phone, the timeline captures it.</p>
+
+  <h3>Inbound Flow</h3>
+  <p>Every inbound message follows the same three-step path:</p>
+  <div class="flow">
+    <div class="flow-step"><div class="step-label">Arrives</div><div class="step-name">Message</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step warn"><div class="step-label">Step 1</div><div class="step-name">TrashMan</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step highlight"><div class="step-label">Step 2</div><div class="step-name">Comm Agent</div></div>
+    <div class="flow-arrow">&#8594;</div>
+    <div class="flow-step success"><div class="step-label">Step 3</div><div class="step-name">Task / Log</div></div>
+  </div>
+
+  <div class="co important">
+    <div class="col">Communications Are Continuous</div>
+    Each individual communication is its own actionable item with a done/not-done state. When you reply to Ruthy's CPA question and mark it done, that means "I've handled this message" - not that you'll never hear from Ruthy again. Her next email is a new item.
+  </div>
+
+  <h4>Batching</h4>
+  <p>When ExclusiveMatchmaking's owner sends 5 rapid-fire WhatsApp messages in a panic about their ad performance, you don't get 5 tasks. Messages from the same sender within 5 minutes are batched and processed as one unit. One task, full context.</p>
+
+  <h4>Backpressure</h4>
+  <p>High-volume bursts (inbox backfill after connecting a new team member, spam floods) are queued and processed in order. Messages are never dropped. Historical backfill processes in reverse-chronological order - most recent first, because that's what you care about most.</p>
+
+  <h3>Outbound Messages</h3>
+  <p>When Eddie sends Nzymes an email from his phone, the system captures it via sent-mail ingestion and logs it to the Nzymes timeline - so everyone has context. When you compose a message from within the app, you ask the AI to draft it, review the draft, approve, and send. Same timeline, same record, regardless of origin.</p>
+
+  <h3>Attachments & Media</h3>
+  <p>Files (images, PDFs, spreadsheets, voice notes) are stored and linked to the message. If Stone & Tile sends over a new product photo that's relevant to an active creative task, the agent links it there automatically.</p>
+</section>
+
+<!-- ================================================ -->
+<!-- 05a. TRASHMAN -->
+<!-- ================================================ -->
+<section id="trashman">
+  <h3>TrashMan: The Junk Filter</h3>
+
+  <p>Imagine never seeing another "Your ad is live" notification from Meta. Imagine your inbox already filtered before you open the app - the vendor spam, the newsletter noise, the automated receipts all gone. But every real client message, every prospect inquiry, every important vendor communication still there. That's TrashMan.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">TrashMan Decision Flow</div>
+    <div class="mermaid">
+flowchart TD
+    MSG[/"Message"/] --> BL{"On blacklist?"}
+    BL -->|"Yes"| FILTER["Filter & Log"]
+    BL -->|"No"| JUNK{"Looks like junk?"}
+    JUNK -->|"No"| PASS["Pass through"]
+    JUNK -->|"Maybe"| QUERY["Query system"]
+    QUERY --> REL{"Client-related?"}
+    REL -->|"Yes"| PASS
+    REL -->|"No"| SURE{"100% certain junk?"}
+    SURE -->|"Yes"| FILTER
+    SURE -->|"Any doubt"| PASS
+    FILTER --> LOG["Recovery Log"]
+    style FILTER fill:#232734,stroke:#ef4444,color:#ef4444
+    style PASS fill:#232734,stroke:#34d399,color:#34d399
+    style QUERY fill:#232734,stroke:#a78bfa,color:#a78bfa
+    </div>
+  </div>
+
+  <p><strong>TrashMan starts extremely conservative.</strong> Only filters what it's absolutely certain is junk. If there's any doubt - any chance it might be from a client, about a client, or relevant to real work - it passes through. A false negative (junk gets through) is annoying. A false positive (a real message gets filtered) could cost a client.</p>
+
+  <h4>Blacklist</h4>
+  <table>
+    <tr><th>Type</th><th>Blocks</th><th>Scope</th></tr>
+    <tr><td><strong>Sender-level</strong></td><td>All messages from a sender (e.g., all Meta ad notifications)</td><td>Per-inbox (Will's vs. Eddie's - because Eddie might need some of what Will doesn't)</td></tr>
+    <tr><td><strong>Subject-pattern</strong></td><td>Subject pattern from a specific sender (e.g., "Your ad is live" from Meta)</td><td>Per-inbox or global</td></tr>
+  </table>
+
+  <h4>Learning</h4>
+  <p>TrashMan only learns through your explicit approval. When you repeatedly dismiss messages from the same sender - say, those daily SEMrush marketing emails - TrashMan proposes a blacklist entry: "Block all from marketing@semrush.com?" You approve or reject. Once approved, the pattern can extend to similar messages from the same sender. TrashMan never invents new categories on its own. It asks, you decide.</p>
+
+  <h4>Recovery</h4>
+  <p>Everything filtered is logged to a recovery log. You can browse it anytime and restore anything with a click. Messages from client-associated domains are automatically flagged as potential false positives - if nzymes.com shows up in the filter log, that gets highlighted immediately. Restored messages re-enter the pipeline at the Comm Agent step as if they'd never been filtered.</p>
+</section>
+
+<!-- ================================================ -->
+<!-- 05b. COMM AGENT -->
+<!-- ================================================ -->
+<section id="comm-agent">
+  <h3>Communication Agent: Decision Logic</h3>
+
+  <p>A message survived TrashMan. Now the Comm Agent needs to figure out: who sent this, what do they want, is this part of an existing conversation, and how urgent is it? Here's a real example: Ruthy from Nzymes emails "Can you check why our CPA went up this month?" The agent identifies Ruthy, reads the Nzymes timeline, sees there's no existing task about CPA, detects this is a question needing a response, and creates a HIGH task with Ruthy's email, recent performance data, and a draft reply.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">How the Agent Decides What to Do</div>
+    <div class="mermaid">
+flowchart TD
+    MSG["Message passes TrashMan"] --> ID{"Identify sender"}
+    ID -->|"Known client"| CLIENT["Read timeline + tasks"]
+    ID -->|"Team member"| TEAM_LOG["Log to client timeline"]
+    ID -->|"Vendor"| VENDOR_TASK["Create Normal task"]
+    ID -->|"Unknown"| UNKNOWN["Create task: manual triage"]
+    CLIENT --> THREAD{"Existing task thread?"}
+    THREAD -->|"Yes"| APPEND["Append to task"]
+    THREAD -->|"New topic"| URG{"Urgency?"}
+    URG -->|"Request / question"| TASK_N["Create task"]
+    URG -->|"FYI / confirmation"| LOG["Log only"]
+    URG -->|"Angry / escalation"| TASK_C["Create CRITICAL task"]
+    style TASK_C fill:#232734,stroke:#ef4444,color:#ef4444
+    style TASK_N fill:#232734,stroke:#34d399,color:#34d399
+    style LOG fill:#232734,stroke:#a78bfa,color:#a78bfa
+    </div>
+  </div>
+
+  <h4>Sender Identification</h4>
+  <p>Matches by email/phone/WhatsApp ID. If ExclusiveMatchmaking's owner emails from a personal address the system hasn't seen before, it's surfaced for manual triage - "Unknown sender, do you know this person?" When you identify them, that address is linked for all future messages.</p>
+
+  <h4>Thread Matching</h4>
+  <p>Email: thread ID (Reply-To chain). SMS/WhatsApp: same contact within a recent time window. If Stone & Tile replies to a three-month-old email thread about their summer campaign with an unrelated question about billing, the agent detects the topic shift and creates a new task instead of appending to dead context.</p>
+
+  <h4>Edge Cases</h4>
+  <ul>
+    <li><strong>Auto-replies / out-of-office</strong> - not filtered, logged to timeline. If a task is waiting on that person (you emailed Ruthy and she's OOO), the auto-reply is noted on the blocked task so you know why.</li>
+    <li><strong>Cross-channel duplicates</strong> - TheRealSleep's owner emails AND texts about the same issue? First message processed, duplicate linked with a note: "client reached out via multiple channels." One task, not two.</li>
+    <li><strong>Team email</strong> - Eddie sends Nzymes a campaign update from Gmail. Logged to the Nzymes timeline for context but doesn't create a task for you unless it reveals a problem.</li>
+  </ul>
+</section>
+
+<!-- ================================================ -->
+<!-- 05c. MEETINGS -->
+<!-- ================================================ -->
+<section id="meetings">
+  <h3>Meeting Processing</h3>
+
+  <p>You just finished a 45-minute call with Stone & Tile Shoppe about their Q3 strategy. Halfway through, their owner mentioned wanting to add Facebook ads. At minute 38, you agreed to send them a creative brief by Friday. Without this system, that lives in your head until you forget it. With this system, it's already a task.</p>
+
+  <p>After a recorded meeting, the system produces two outputs:</p>
+  <ol>
+    <li><strong>Meeting summary</strong> - a narrative of what was discussed, logged to the client timeline(s) immediately. Not a task - it's context. Anyone looking at Stone & Tile's timeline sees "Q3 strategy call: discussed expanding to Facebook, reviewed Google Ads performance, agreed on creative brief deadline."</li>
+    <li><strong>Action items</strong> - extracted tasks, each with: description, AI reasoning for why it's an action item, the transcript excerpt where it was mentioned, and a recording link at the exact timestamp so you can hear the original conversation.</li>
+  </ol>
+
+  <h4>Batch Review</h4>
+  <p>Action items enter as pending. They're presented as a batch for you to approve, reject, or edit. If the meeting produced 8 items, you can approve 3 that are real, reject 2 that were just brainstorming, and edit the rest. Partial review is fully supported - the unapproved items stay pending. Items that sound identical to ones from last week's meeting are flagged as potential duplicates.</p>
+
+  <h4>Client Attribution</h4>
+  <p>Multi-client meetings: items are attributed to the correct client. If you discuss Stone & Tile and Nzymes in the same internal sync, each action item goes to the right client timeline. Prospective clients not yet in the system are tagged "unassigned" for you to associate during review.</p>
+
+  <h4>Quality Gate</h4>
+  <p>Bad transcript quality? Flagged for manual review rather than guessing at action items from garbled audio. The system does not guess. Meetings with no action items still produce a summary - context is always valuable even when there's no immediate work.</p>
+
+  <div class="co">
+    <div class="col">All Meetings</div>
+    Client calls, internal syncs with Eddie and the team, vendor conversations - no meeting type is excluded. An internal sync where someone says "we need to send Nzymes their Q2 report" generates the same action item as a client call.
+  </div>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 06. MONITORING -->
+<!-- ================================================ -->
+<section id="monitoring">
+  <h2><span class="n">06</span> Monitoring: Rules, Thresholds, and Auto-Fixes</h2>
+  <p class="si">It's 3 AM. Stone & Tile Shoppe's Google Ads is burning through budget at 2x the normal rate because a broad match term went haywire. Nobody's awake. The system detects it, reduces the daily cap, adds the offending term as a negative, and has a full report waiting in your sidebar when you wake up. That's Monitoring.</p>
+
+  <p>Here's what makes this different from "AI watching your accounts": every rule is a specific, predictable threshold. Not "let the AI decide if things look off." You define the condition, you define what happens when it fires. The AI helps resolve the issue once detected, but detection itself is deterministic - no surprises.</p>
+
+  <h3>Two Trigger Types</h3>
+  <div class="compare">
+    <div class="compare-box left">
+      <div class="compare-title">Action-Based</div>
+      <p style="font-size:13px;color:var(--text-dim)">Fire when an event occurs. TheRealSleep's website throws a 5xx error - alert fires immediately.</p>
+      <ul style="font-size:13px;"><li>Website 5xx error</li><li>Ad disapproved</li><li>Budget exhausted before noon</li></ul>
+    </div>
+    <div class="compare-box right">
+      <div class="compare-title">Time-Based</div>
+      <p style="font-size:13px;color:var(--text-dim)">Fire on a schedule to check. Every morning at 7 AM: are all client sites up?</p>
+      <ul style="font-size:13px;"><li>7 AM: all sites up?</li><li>Every 6h: frequency below 3.0?</li><li>Weekly: search term quality</li></ul>
+    </div>
+  </div>
+
+  <h3>What Gets Monitored</h3>
+  <table>
+    <tr><th>Category</th><th>Checks</th></tr>
+    <tr><td><strong>Google Ads</strong></td><td>Search terms (Stone & Tile getting clicks for "wholesale tile"?), budget pacing, conversions, geo-targeting, disapprovals</td></tr>
+    <tr><td><strong>Facebook Ads</strong></td><td>Frequency/fatigue (Nzymes' audience seeing the same ad 4x?), disapprovals, delivery, conversions, cost trends</td></tr>
+    <tr><td><strong>Websites</strong></td><td>Uptime (TheRealSleep's site down?), SSL, page speed, critical errors</td></tr>
+    <tr><td><strong>Email Campaigns</strong></td><td>Open/click/bounce rates, deliverability</td></tr>
+    <tr><td><strong>Conversion Health</strong></td><td>Events flowing, pixels firing, data gaps (ExclusiveMatchmaking's form submissions stopped registering?)</td></tr>
+  </table>
+  <p>Each rule has a threshold with system defaults, overridable per client. Stone & Tile might tolerate a frequency of 3.5; ExclusiveMatchmaking might need to stay below 2.0. Full default list is a separate config document.</p>
+
+  <h3>Auto-Fix vs. Ask-Permission</h3>
+  <p>Every rule has a setting: can the system fix it automatically, or does it need to ask you first? Same category can have both types. Each rule also has a <strong>severity</strong> (low/med/high/critical).</p>
+  <ul>
+    <li><strong>Auto-fix</strong> - detects, fixes, reports. For unambiguous situations. Stone & Tile's budget pacing 35% over? Reduce the cap. No judgment call needed. The task in your sidebar is informational: "Here's what I did and why."</li>
+    <li><strong>Ask-permission</strong> - detects, proposes a fix with reasoning, waits for you. Nzymes' CPA doubled but it might be seasonal? The system shows you the data, suggests pausing the underperforming ad set, and waits for your call.</li>
+  </ul>
+  <p>If an auto-fix fails (API error, rate limit), it escalates to ask-permission. Low-severity auto-fix results batch into a daily summary so your sidebar isn't cluttered with minor wins. Medium+ appear as individual tasks. <em>Circuit breaker rules governing auto-fix limits (cooldown, max fixes, contradiction handling) are in <a href="#circuit" style="color:var(--accent)">Section 12</a>.</em></p>
+
+  <h4>Data Freshness</h4>
+  <p>Ad platform APIs lag 3-24 hours. Rules check data freshness before firing. If the data is stale, the check is deferred rather than triggering a false alert. No waking you up about a "conversion drop" that's really just a reporting delay.</p>
+
+  <h3>Rule Lifecycle</h3>
+  <p>Rules aren't static - they need to adapt to what's happening with each client:</p>
+  <table>
+    <tr><th>Event</th><th>Behavior</th></tr>
+    <tr><td><strong>New client</strong></td><td>Grace period (default 2 weeks). Stone & Tile just launched? Monitoring collects baseline data, doesn't fire alerts on normal fluctuations. Genuine critical issues (site down) still fire immediately.</td></tr>
+    <tr><td><strong>Planned restructure</strong></td><td>You're rebuilding Nzymes' campaign structure this week. Rules paused for that client with an optional expiry date. No false alarms during the overhaul.</td></tr>
+    <tr><td><strong>Client offboarded</strong></td><td>Rules auto-deactivated. No zombie alerts.</td></tr>
+    <tr><td><strong>Missed check (downtime)</strong></td><td>System was down for maintenance? Runs missed checks on restart and notes the gap in the timeline.</td></tr>
+  </table>
+
+  <h4>Rule Management</h4>
+  <p>A filterable rule management view (separate from chat) lets you browse, edit, toggle, and create rules across clients. This is the one exception to "everything is a chat thread" for Monitoring - hundreds of rules need a list view, not conversation. You need to see at a glance that Stone & Tile has 14 active rules and Nzymes has 8.</p>
+
+  <h4>Proposing New Rules</h4>
+  <p>The system can propose new rules, but only during an existing workflow - not by scanning accounts unprompted. If you're working a task about ExclusiveMatchmaking's rising CPAs and the AI notices they don't have a frequency cap rule, it'll suggest one. You approve every parameter before it goes live.</p>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 07. SETUP & ACTIONS -->
+<!-- ================================================ -->
+<section id="setup">
+  <h2><span class="n">07</span> Setup & Actions: Onboarding to Launch</h2>
+  <p class="si">A new client just signed. TheRealSleep wants Google Ads, Facebook Ads, and conversion tracking on their Shopify store. Today, that means a mental checklist, scattered notes, and hoping you don't forget to install the pixel before launching the campaign. Tomorrow, it's a structured workflow where each step validates the one before it.</p>
+
+  <div class="compare">
+    <div class="compare-box left">
+      <div class="compare-title">Dedicated Workflows</div>
+      <p style="font-size:13px;">Structured multi-step processes for things you do regularly: onboarding, campaign launch, conversion tracking setup, ad creation, website design. Each step has a completion condition and can validate the work.</p>
+    </div>
+    <div class="compare-box right">
+      <div class="compare-title">Open Workspace</div>
+      <p style="font-size:13px;">Interactive AI session for the weird stuff. ExclusiveMatchmaking has a custom CRM that needs a webhook integration? That's a workspace conversation. Unusual tech stacks, new platforms, custom integrations. Permanent first-class feature, not an afterthought.</p>
+    </div>
+  </div>
+
+  <h3>Workflows as Step Sequences</h3>
+  <p>Take TheRealSleep's onboarding. It's not a vague "set them up" - it's a defined sequence where some steps depend on others:</p>
+  <div class="diagram">
+    <div class="diagram-title">Example: New Client Onboarding</div>
+    <div class="mermaid">
+flowchart TD
+    S1["1. Contract Signed"] --> S2["2. Billing Setup"]
+    S2 --> S3["3. Ad Account Access"]
+    S3 --> S4["4. Conversion Tracking"]
+    S3 --> S5["5. Creative Production"]
+    S4 --> S6["6. Campaign Launch"]
+    S5 --> S6
+    S6 --> S7["7. Handoff to Monitoring"]
+    style S1 fill:#232734,stroke:#34d399,color:#34d399
+    style S7 fill:#232734,stroke:#f59e0b,color:#f59e0b
+    </div>
+  </div>
+
+  <p>Steps 4 (conversion tracking) and 5 (creative production) run in parallel - no reason to wait. But Step 6 (campaign launch) can't start until both are done. You're not launching ads without tracking, and you're not launching without creative. Each step can be: Pending, In Progress, Blocked (TheRealSleep hasn't given you Shopify access yet - reason recorded, and Reporting can follow up), or Complete.</p>
+
+  <h4>Step Validation</h4>
+  <p>Before marking a step complete, the system validates where possible. You say tracking is "installed"? The system fires a test event to verify the pixel actually works. You say the campaign is ready to launch? It checks that the landing page loads, the conversion tracking is firing, and the budget is set. No building on broken foundations.</p>
+
+  <h4>Progress Visibility</h4>
+  <p>Each workflow is one parent task in the sidebar. Click "TheRealSleep Onboarding" and see all steps with their status. The bird's-eye view shows all active workflows across clients - so at a glance you know Nzymes is on step 4, TheRealSleep is on step 2, and ExclusiveMatchmaking is blocked waiting for creative assets.</p>
+
+  <h4>Workspace Sessions</h4>
+  <p>Workspace conversations persist. Start working on that custom webhook integration for ExclusiveMatchmaking at 2 PM, get pulled away for a call, come back at 4 PM - full context preserved. Pick up exactly where you left off.</p>
+
+  <h3>Setup to Monitoring Handoff</h3>
+  <div class="co important">
+    <div class="col">Critical Handoff</div>
+    When TheRealSleep's campaign launches or tracking is installed, Monitoring is automatically notified and activates rules with a grace period. New campaigns are never unwatched. You don't have to remember to "turn on monitoring" - it happens the moment a campaign goes live.
+  </div>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 08. TIMELINE & REPORTING -->
+<!-- ================================================ -->
+<section id="timeline">
+  <h2><span class="n">08</span> Timeline & Reporting: Memory and Client Communication</h2>
+  <p class="si">Imagine pulling up Nzymes and seeing every email, every ad change, every meeting note, every billing event in one chronological view. That's the timeline. Now imagine the system using that history to draft a weekly update that actually references what happened - not a generic template. That's Reporting.</p>
+
+  <h3>The Client Timeline</h3>
+  <p>Every client has a chronological, append-only log of everything that's happened. Think of it as the definitive record of a client relationship. When you're about to hop on a call with Stone & Tile's owner, you pull up the timeline and in 30 seconds you know: Eddie emailed them Tuesday about new creative, Monitoring auto-fixed a budget overspend Thursday, and their invoice was paid Friday.</p>
+
+  <p>This is the single source of truth for any agent that needs to understand a client's history. Every domain reads it before acting.</p>
+
+  <h4>What Gets Logged</h4>
+  <table>
+    <tr><th>Event Type</th><th>Source</th><th>Example</th></tr>
+    <tr><td>email_received</td><td>Comm</td><td>"Ruthy sent: 'Can you check why our CPA went up?'"</td></tr>
+    <tr><td>email_sent</td><td>Comm</td><td>"Will replied to Ruthy re: CPA analysis"</td></tr>
+    <tr><td>email_sent_external</td><td>Comm</td><td>"Eddie sent email to Nzymes from Gmail re: new creative"</td></tr>
+    <tr><td>meeting_summary</td><td>Comm</td><td>"Q3 strategy call with Stone & Tile: discussed Facebook expansion"</td></tr>
+    <tr><td>task_completed</td><td>Any</td><td>"Resolved: Nzymes FB frequency alert"</td></tr>
+    <tr><td>ad_change</td><td>Mon/Setup</td><td>"Stone & Tile budget adjusted $85 to $62 (auto-fix: overspend)"</td></tr>
+    <tr><td>campaign_launched</td><td>Setup</td><td>"TheRealSleep Google Search campaign live"</td></tr>
+    <tr><td>monitoring_alert</td><td>Mon</td><td>"Nzymes FB frequency exceeded 3.0"</td></tr>
+    <tr><td>report_sent</td><td>Rpt</td><td>"ExclusiveMatchmaking weekly report sent"</td></tr>
+    <tr><td>billing_event</td><td>Admin</td><td>"Stone & Tile Invoice #1234 paid"</td></tr>
+    <tr><td>correction</td><td>Any</td><td>"Corrects #4521: Stone & Tile budget was $62 not $52"</td></tr>
+  </table>
+  <p>Not exhaustive - new types are added as needed. The key: consistent naming so timelines are filterable and searchable across every client.</p>
+
+  <h4>Bounded Reads</h4>
+  <p>Agents don't read the entire timeline every time - that would be slow and wasteful. Each has a relevance window tuned to what it actually needs:</p>
+  <ul>
+    <li><strong>Comm Agent</strong> - last 30 days of communications + active tasks (enough to draft a contextual reply to Ruthy)</li>
+    <li><strong>Monitoring</strong> - last 7 days of changes + recent monitoring actions (enough to avoid conflicting with recent work)</li>
+    <li><strong>Reporting</strong> - last 90 days for periodic summaries (enough to write a meaningful quarterly review)</li>
+    <li><strong>Task threads</strong> - relevant events loaded on demand as the conversation needs them</li>
+  </ul>
+
+  <h4>Corrections</h4>
+  <p>Wrong entry? A correction entry is appended referencing and superseding the original. The original is never deleted - audit trail preserved. If the auto-fix logged "$52" but it was actually "$62," the correction links back to the original and sets the record straight.</p>
+
+  <h3>The Reporting Agent</h3>
+  <p>Reporting is the client-facing communication arm. Two jobs:</p>
+  <div class="cg">
+    <div class="card purple">
+      <div class="ct">1. Keep Clients Informed</div>
+      <div class="cd">Periodic updates: "Here's how Nzymes did this month." Performance summaries, setup progress, milestones reached. Cadence configured per client - ExclusiveMatchmaking gets weekly updates, Stone & Tile prefers monthly. <strong>All messages require your approval before sending.</strong></div>
+    </div>
+    <div class="card purple">
+      <div class="ct">2. Follow Up on Client Obligations</div>
+      <div class="cd">TheRealSleep hasn't sent the Shopify access you asked for 5 days ago. Reporting sends escalating follow-ups: first gentle, then direct, then flags it to you. <strong>Max 3 automated follow-ups</strong> before it stops and creates a task for you to handle personally.</div>
+    </div>
+  </div>
+
+  <h4>Report Content</h4>
+  <p>Each report includes: performance summary with period-over-period comparison, ad spend pacing, actions taken (like that 3 AM budget fix for Stone & Tile), issues and resolutions, AI-suggested next steps, and outstanding client obligations. Format and detail level are configurable per client - some want the deep dive, some want the highlights.</p>
+
+  <h4>Report Holds</h4>
+  <p>Here's where cross-domain intelligence really shines. ExclusiveMatchmaking's weekly report is due, but Admin flagged an overdue invoice yesterday. Reporting doesn't blindly send a cheerful "Great week!" update. Instead, it asks you: "Weekly report due for ExclusiveMatchmaking, but there's an open billing issue. Send as-is, modify the tone, or defer until the billing issue is resolved?"</p>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 09. ADMINISTRATION -->
+<!-- ================================================ -->
+<section id="admin">
+  <h2><span class="n">09</span> Administration: The Financial Watchdog</h2>
+  <p class="si">ExclusiveMatchmaking's invoice is 15 days overdue. Their contract renews in 60 days. And Stone & Tile's ad spend is pacing 20% under budget for the month. You need to know all of this - but you don't need a system that sends passive-aggressive payment reminders on your behalf. Admin watches. Admin alerts. Admin never acts.</p>
+
+  <h3>What Admin Watches</h3>
+  <ul>
+    <li>Invoice status and payment receipts - "Nzymes paid Invoice #1847 on March 28"</li>
+    <li>Overdue payments - alerts at 7, 15, and 30 days. ExclusiveMatchmaking at 7 days is a gentle nudge to you; at 30 days it's a red flag.</li>
+    <li>Contract expiration - alerts at 90, 60, and 30 days. Plenty of runway to have the renewal conversation.</li>
+    <li>Rate changes or billing discrepancies - something doesn't match? You hear about it.</li>
+  </ul>
+
+  <h3>Ad Spend Pacing</h3>
+  <p>Each client has a monthly ad spend budget. The system tracks actual vs. budget continuously. In the bird's-eye view, you see it at a glance: Stone & Tile is green (on pace), Nzymes is yellow (drifting 15% under), TheRealSleep is red (significantly over). Monitoring rules alert when pacing deviates beyond a threshold - and the auto-fix can adjust daily caps before things get out of hand.</p>
+
+  <h3>How Issues Surface</h3>
+  <p>Admin does two things when it detects an issue. First, it creates a task for you - "ExclusiveMatchmaking invoice 15 days overdue." Second, it notifies the Reporting agent so it adjusts client communications. If ExclusiveMatchmaking's payment is overdue, Reporting knows not to send them a cheerful "What a great month!" update. The domains talk to each other so you don't have to juggle the context yourself.</p>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 10. HOW DOMAINS CONNECT -->
+<!-- ================================================ -->
+<section id="connections">
+  <h2><span class="n">10</span> Cross-Domain Intelligence</h2>
+  <p class="si">Here's where it stops being five separate tools bolted together and starts being something genuinely new. Each domain on its own is useful. Together, querying each other in real time, they produce intelligence that no single domain - and honestly, no single person - could achieve alone.</p>
+
+  <h3>Direct Relationships</h3>
+  <table>
+    <tr><th>From</th><th>To</th><th>What Happens</th></tr>
+    <tr><td><span class="dt admin">ADM</span></td><td><span class="dt timeline">RPT</span></td><td>ExclusiveMatchmaking's invoice is overdue - Reporting holds the cheerful weekly update</td></tr>
+    <tr><td><span class="dt setup">SETUP</span></td><td><span class="dt timeline">RPT</span></td><td>TheRealSleep hasn't sent Shopify access for 5 days - Reporting sends a follow-up</td></tr>
+    <tr><td><span class="dt setup">SETUP</span></td><td><span class="dt monitor">MON</span></td><td>Nzymes' new campaign just launched - Monitoring activates rules with a grace period</td></tr>
+    <tr><td><span class="dt monitor">MON</span></td><td><span class="dt timeline">RPT</span></td><td>Stone & Tile's performance data feeds into their weekly client report</td></tr>
+    <tr><td><span class="dt monitor">MON</span></td><td><span class="dt comm">COMM</span></td><td>Auto-fixed Stone & Tile's budget at 3 AM - if they call about it, Comm Agent has context</td></tr>
+    <tr><td><span class="dt comm">COMM</span></td><td><span class="dt monitor">MON</span></td><td>Ruthy mentions "our leads dropped" - Monitoring gets a heads-up to investigate</td></tr>
+    <tr><td>All</td><td>Timeline</td><td>Every domain reads the timeline for context and writes outcomes back to it</td></tr>
+  </table>
+</section>
+
+<section id="emergent">
+  <h3>Emergent Properties: Cross-Agent Intelligence</h3>
+  <p>The real power emerges when agents query each other automatically. Instead of each domain operating in its lane, agents ask each other questions in real time. Look at the difference:</p>
+
+  <table>
+    <tr><th>Scenario</th><th>Without Cross-Queries</th><th>With Cross-Queries</th></tr>
+    <tr>
+      <td><strong>Ruthy emails "how are our campaigns doing?"</strong></td>
+      <td>Task created: "Nzymes - client asking about performance." You have to pull the data yourself, check the budget, look at recent changes.</td>
+      <td>Comm Agent queries Monitoring + Admin + Reporting. Task opens with current metrics, billing status, recent changes, and a draft reply ready for approval. A 10-minute task becomes a 30-second approval.</td>
+    </tr>
+    <tr>
+      <td><strong>Nzymes conversions drop 40%</strong></td>
+      <td>Monitoring creates an alert with data and a proposed fix.</td>
+      <td>Monitoring queries Comm ("has Ruthy mentioned website changes?") and Setup ("any recent tracking changes for Nzymes?"). Finds: Ruthy mentioned a website redesign last week + tracking was reinstalled 3 days ago. The alert becomes a diagnosis, not just a number.</td>
+    </tr>
+    <tr>
+      <td><strong>Meeting: "Set up FB ads for Stone & Tile's new product line"</strong></td>
+      <td>Action item sits in the queue until someone figures out what's needed.</td>
+      <td>Meeting Agent queries Admin (billing confirmed), Setup (workflow template exists), Monitoring (current baseline data). The action item arrives with full context, ready to launch as a workflow.</td>
+    </tr>
+    <tr>
+      <td><strong>ExclusiveMatchmaking's invoice is overdue</strong></td>
+      <td>Admin creates a task and notifies Reporting.</td>
+      <td>Admin queries Comm ("has the client mentioned payment recently?") and Reporting ("when's the next scheduled update?"). Finds: ExclusiveMatchmaking's owner emailed Tuesday saying payment is coming Friday. Task arrives as a nuanced briefing - "overdue, but client acknowledged it" - not a fire alarm.</td>
+    </tr>
+    <tr>
+      <td><strong>TheRealSleep onboarding starts</strong></td>
+      <td>Each step starts cold. You have to remember what was discussed in the sales process.</td>
+      <td>Setup queries Comm for 3 months of pre-sale conversations. The creative brief writes itself from actual client goals mentioned in emails and meeting notes. Step 1 already has context.</td>
+    </tr>
+  </table>
+
+  <h4>Guardrails</h4>
+  <p>Cross-domain queries are powerful, but they need boundaries:</p>
+  <ul>
+    <li><strong>Read-only</strong> - agents query each other for information, not tell each other to act. Monitoring doesn't tell Comm to send an email.</li>
+    <li><strong>Query budget</strong> - limits per task to prevent runaway costs. Ruthy's routine email about scheduling doesn't need to query all 4 domains. The system is smart about when cross-queries add value.</li>
+    <li><strong>One level deep</strong> - no circular chains. If Comm queries Monitoring, Monitoring does not query back to Comm for that same task.</li>
+    <li><strong>Graceful degradation</strong> - if a query fails (timeout, API error), preprocessing proceeds with what it has and notes what's missing. "Monitoring data unavailable - proceed with Comm context only."</li>
+    <li><strong>Transparent</strong> - you see exactly which agents were consulted in the preprocessing. No black box.</li>
+  </ul>
+</section>
+
+<section id="preflight">
+  <h3>Pre-Flight Checks</h3>
+  <p>Before the Reporting agent sends any client communication - a weekly update, a follow-up email, anything - it runs four checks:</p>
+  <ol>
+    <li>Any open critical/high tasks for this client? (ExclusiveMatchmaking has a site outage - maybe don't send the cheerful report.)</li>
+    <li>Any billing issues flagged by Admin? (Their invoice is 15 days overdue - adjust the tone.)</li>
+    <li>Any active monitoring problems? (Conversions dropped 40% yesterday - don't brag about performance.)</li>
+    <li>Any angry/escalating communications recently? (The owner sent a frustrated email this morning - read the room.)</li>
+  </ol>
+  <p>If any check is positive, Reporting modifies the message, defers it, or flags it for you to decide. This prevents the "cheerful update to an angry client" problem - the kind of tone-deaf communication that erodes trust.</p>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 11. THE INTERFACE -->
+<!-- ================================================ -->
+<section id="interface">
+  <h2><span class="n">11</span> The Interface</h2>
+  <p class="si">One application. A sidebar of prioritized tasks on the left, a conversation thread on the right. That's it. No dashboards to memorize, no tabs to manage, no context switching. You open the app and immediately see what needs doing, sorted by what matters most.</p>
+
+  <p>Here's what it looks like in practice. Stone & Tile's budget got auto-fixed overnight. TheRealSleep's site is throwing errors. Ruthy from Nzymes wants to talk CPA. It's all right here:</p>
+
+  <div class="mockup-frame">
+    <div class="mockup-titlebar">
+      <div class="mockup-dot r"></div><div class="mockup-dot y"></div><div class="mockup-dot g"></div>
+      <span style="margin-left:10px;font-size:12px;color:var(--text-dim)">Agency Command Center</span>
+    </div>
+    <div class="mockup-body">
+      <div class="mockup-sidebar">
+        <div class="new-chat-btn">+ New Chat</div>
+        <div style="display:flex;gap:4px;margin-bottom:6px;">
+          <input type="text" placeholder="Search..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:3px;padding:4px 6px;color:var(--text);font-size:11px;outline:none;">
+        </div>
+        <div class="filter-bar">
+          <div class="filter-pill active">All</div><div class="filter-pill">Mine</div><div class="filter-pill">Clients</div><div class="filter-pill">Alerts</div>
+        </div>
+        <div class="sdiv" style="color:var(--red)">Critical</div>
+        <div class="mockup-thread" style="border-left:3px solid var(--red);padding-left:7px;">
+          <div class="tt">TheRealSleep - Site Down</div>
+          <div class="tm"><span class="dt monitor" style="font-size:8px;padding:1px 4px;">MON</span> 503 for 12min</div>
+        </div>
+        <div class="sdiv" style="color:var(--orange)">High</div>
+        <div class="mockup-thread active">
+          <div class="tt">Stone & Tile - Budget Pacing</div>
+          <div class="tm"><span class="dt monitor" style="font-size:8px;padding:1px 4px;">MON</span> Auto-fixed</div>
+        </div>
+        <div class="mockup-thread">
+          <div class="tt">Nzymes - Reply to Ruthy</div>
+          <div class="tm"><span class="dt comm" style="font-size:8px;padding:1px 4px;">COMM</span> Asking about CPA</div>
+        </div>
+        <div class="sdiv">Normal</div>
+        <div class="mockup-thread">
+          <div class="tt">Weekly Sync</div>
+          <div class="tm"><span class="dt comm" style="font-size:8px;padding:1px 4px;">COMM</span> 4 items pending</div>
+        </div>
+        <div class="mockup-thread" style="opacity:0.6">
+          <div class="tt">Nzymes Onboarding</div>
+          <div class="tm"><span class="dt setup" style="font-size:8px;padding:1px 4px;">SETUP</span> Blocked: assets</div>
+        </div>
+        <div style="margin-top:8px;padding-top:8px;border-top:1px solid var(--border);text-align:center;font-size:10px;color:var(--text-dim)">7 done today &middot; <span style="color:var(--accent)">Archive</span></div>
+      </div>
+      <div class="mockup-main">
+        <div style="font-size:11px;color:var(--text-dim);margin-bottom:14px;">
+          <span class="dt monitor" style="font-size:8px;padding:1px 4px;">MON</span>
+          <span class="pt high" style="font-size:8px;padding:1px 4px;">HIGH</span>
+          Stone & Tile Shoppe
+        </div>
+        <div class="mockup-msg ai">
+          <div class="mb">
+            Stone & Tile's Google Ads was pacing 35% over budget. I've adjusted:
+            <div class="mockup-tool"><div class="ts">&#10003; Adjust Budget Cap</div>$85 to $62. Effective now.</div>
+            Overspend from broad match. Recommend adding "wholesale" and "bulk" as negatives. Want me to?
+          </div>
+        </div>
+        <div class="mockup-msg user"><div class="mb">Yes, add those. Check the other campaigns too.</div></div>
+        <div class="mockup-msg ai">
+          <div class="mb">
+            <div class="mockup-tool"><div class="ts">&#10003; Add Negative Keywords</div>"wholesale" + "bulk" added.</div>
+            <div class="mockup-tool"><div class="ts">&#10003; Check Others</div>3 campaigns checked - all on pace.</div>
+            Done. Logged to timeline. Anything else?
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sidebar">
+  <h3>Sidebar & Filtering</h3>
+  <p>Tasks are sorted by priority - Critical at the top, Low at the bottom. Within each tier, most recent first. But the sidebar isn't just a list - it's filterable:</p>
+  <ul>
+    <li><strong>Search</strong> - keyword across titles, clients, content. Type "Nzymes" and see everything related to them.</li>
+    <li><strong>Domain filter</strong> - show only Comm tasks, only Monitoring alerts, only Setup workflows.</li>
+    <li><strong>Client filter</strong> - show one client's tasks. Click "Stone & Tile" and see their complete picture.</li>
+    <li><strong>Assignee filter</strong> - your tasks vs. Eddie's vs. Reileigh's vs. everyone's.</li>
+    <li><strong>Status filter</strong> - active, blocked, deferred. "Show me everything that's blocked" across all clients.</li>
+  </ul>
+  <h4>Keyboard & Bulk Operations</h4>
+  <p>Arrow keys navigate, Enter opens, Escape closes, shortcut marks done. <strong>Bulk select</strong> (shift-click or select-all in a filter) to mark done, defer, reassign, or re-prioritize many tasks at once. After a Monday morning review, you might bulk-defer 5 low-priority items and reassign 3 to Eddie in seconds.</p>
+</section>
+
+<section id="birdseye">
+  <h3>Bird's-Eye View</h3>
+  <p>Imagine a single screen that answers: "How are all my clients doing right now?" Not a task list - a dashboard. A separate view (not a chat thread) showing:</p>
+  <ul>
+    <li>All clients with a status indicator - Stone & Tile is healthy (green), Nzymes needs attention (yellow), TheRealSleep has a critical issue (red), ExclusiveMatchmaking is mid-onboarding</li>
+    <li>Open task count per client by priority</li>
+    <li>Ad spend pacing per client - green/yellow/red at a glance</li>
+    <li>Active workflows and which step they're on - TheRealSleep onboarding: step 3 of 7</li>
+    <li>Blocked items highlighted with reasons - "Nzymes: waiting on creative assets since March 28"</li>
+  </ul>
+  <p>Live-updating. Read-only - click through to task threads for action. This is the view you pull up before a Monday team meeting.</p>
+
+  <h4>Daily Digest</h4>
+  <p>First open of the day shows a digest: 3 new tasks overnight, Monitoring auto-fixed Stone & Tile's budget, Ruthy's email escalated to High, Nzymes onboarding still blocked on assets, and a "start here" suggestion pointing you to the most impactful task. Dismissible - read it or wave it away.</p>
+</section>
+
+<section id="working">
+  <h3>Working Tasks</h3>
+  <p>The conversation area: AI preprocessing at the top (here's what I found, here's what I suggest), then a back-and-forth between you and the AI. Tool execution cards show inline - collapsible, green for success, red for failure. When an auto-fix ran overnight, you see exactly what happened. When a tool fails, the error is shown and the AI suggests a retry or alternative.</p>
+  <h4>Communication Tasks</h4>
+  <p>You reply to Ruthy, hit send, and the task fades from the sidebar as "done." But the panel stays open - because Ruthy might reply in 5 minutes, and you might want to continue the conversation. The panel closes when you navigate away or press Escape. "Done" means "I handled this message," not "close everything."</p>
+</section>
+
+<section id="adhoc">
+  <h3>Quick Queries</h3>
+  <p>"+ New Chat" offers two modes:</p>
+  <ul>
+    <li><strong>New Task</strong> - persistent thread in the sidebar. "Research new landing page builder for Stone & Tile."</li>
+    <li><strong>Quick Query</strong> - ephemeral conversation for lookups and questions. "What's Nzymes' CPA this month?" or "When does ExclusiveMatchmaking's contract expire?" Not saved to the sidebar.</li>
+  </ul>
+  <p>Quick queries have full read access. But if you end up taking action (drafting an email, modifying a campaign), that write action is logged to the timeline even though the query is ephemeral. And if a "quick question" turns into real work, you can promote it to a persistent task with one click.</p>
+</section>
+
+<section id="mobile">
+  <h3>Mobile & Notifications</h3>
+  <p><strong>V1 is desktop-first.</strong> But responsive enough for basic mobile triage: glance at the sidebar on your phone, read the preprocessing, approve a reply to Ruthy, mark something done. Complex multi-tool workflows stay on desktop.</p>
+  <h4>Notification Preferences</h4>
+  <ul>
+    <li><strong>CRITICAL only</strong> pushes - browser notification, sound, or both. TheRealSleep's site goes down? You hear about it.</li>
+    <li><strong>Quiet hours</strong> - suppress push during defined hours. That 2 AM monitoring alert? Held and surfaced when quiet hours end. You sleep.</li>
+    <li><strong>CRITICAL sensitivity</strong> - adjustable per domain to prevent over-firing. You decide what constitutes a genuine emergency.</li>
+  </ul>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 12. SAFETY & ERROR HANDLING -->
+<!-- ================================================ -->
+<section id="safety">
+  <h2><span class="n">12</span> Safety, Errors & Guardrails</h2>
+  <p class="si">A system this autonomous needs hard limits. What happens when the auto-fix creates a new problem? When the AI misclassifies a message? When an API goes down mid-operation? Every failure mode has an answer, and the answer is always: tell the user what happened and give them clear options.</p>
+
+  <h3 id="circuit">Monitoring Circuit Breakers</h3>
+  <p>Imagine this: Monitoring detects Stone & Tile's budget is overspending and auto-reduces it from $85 to $62. Twenty minutes later, a different rule detects that now it's underspending. Without circuit breakers, the system would keep seesawing - fix, trigger, fix, trigger. Here's what stops that:</p>
+  <ul>
+    <li><strong>Cooldown</strong> - after an auto-fix, no further auto-fixes on the same entity for 1 hour (configurable). That underspend detection? It becomes an ask-permission task instead of another auto-fix.</li>
+    <li><strong>Max fixes</strong> - no more than 3 auto-fixes on the same entity in 24 hours. After 3, everything becomes ask-permission. The system is telling you: "I've tried 3 times, you should look at this."</li>
+    <li><strong>Contradiction detection</strong> - two rules with opposing actions (one says pause the campaign, another says increase the budget)? Neither auto-executes. Creates one ask-permission task showing the conflict: "These two rules disagree - here's both sides, you decide."</li>
+  </ul>
+
+  <h3>Error Handling</h3>
+  <table>
+    <tr><th>Failure</th><th>Response</th></tr>
+    <tr><td><strong>External API down</strong></td><td>Defer the check, retry next window. Tasks needing the API marked blocked. You see "Google Ads API unavailable" - not silence.</td></tr>
+    <tr><td><strong>Auto-fix fails</strong></td><td>Escalates to ask-permission with failure details. "Tried to reduce Stone & Tile's budget but got an API error. Here's what happened - want me to retry?" Never retries silently.</td></tr>
+    <tr><td><strong>AI produces bad output</strong></td><td>Client-facing outputs require your approval - bad drafts get caught there. Misclassifications are correctable. Timeline entries correctable via correction entries.</td></tr>
+    <tr><td><strong>System downtime</strong></td><td>Missed monitoring checks caught up on restart. Messages queue and process in order. Gap noted in the timeline: "System was down 2:15-2:45 AM, checks resumed."</td></tr>
+    <tr><td><strong>Wrong dedup merge</strong></td><td>You split the merged tasks. Each keeps its original context intact.</td></tr>
+    <tr><td><strong>TrashMan filters something important</strong></td><td>Recovery log with client-domain flagging. You restore it, it re-enters the pipeline as if it was never filtered.</td></tr>
+    <tr><td><strong>Stale task context</strong></td><td>48+ hours unworked = re-preprocess on open. You always see current data.</td></tr>
+    <tr><td><strong>Cross-agent query fails</strong></td><td>Proceed with partial context, note what's missing. "Monitoring data unavailable for Nzymes - proceeding with communication context only." Never blocks task creation.</td></tr>
+  </table>
+
+  <div class="co principle">
+    <div class="col">Error Philosophy</div>
+    Fail visibly, not silently. When something goes wrong, you see what happened and have clear options. No guessing. No wondering if something worked. No finding out a week later that monitoring was silently broken.
+  </div>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 13. END-TO-END WALKTHROUGH -->
+<!-- ================================================ -->
+<section id="e2e">
+  <h2><span class="n">13</span> End-to-End Walkthrough</h2>
+  <p class="si">Let's trace two real scenarios through the entire system - every step, every domain, every handoff - to see how it all fits together.</p>
+
+  <h3>Happy Path: Ruthy Emails About Low Leads</h3>
+  <p>Ruthy from Nzymes sends an email: "Our leads dropped this week - what's going on?" At the same time, Monitoring independently catches a conversion drop on their account. Here's the complete flow from both entry points to resolution:</p>
+  <div class="diagram">
+    <div class="diagram-title">Complete Flow</div>
+    <div class="mermaid">
+sequenceDiagram
+    participant E as Client Email
+    participant TM as TrashMan
+    participant CA as Comm Agent
+    participant TL as Timeline
+    participant T as Task Queue
+    participant M as Monitoring
+    participant UI as Interface
+    participant W as Will
+
+    E->>TM: "Our leads dropped this week"
+    TM->>CA: Not junk, pass through
+    CA->>TL: Read recent history
+    CA->>CA: Urgency: HIGH
+    CA->>T: Create HIGH task
+    Note over M: Independently detects conversion drop
+    M->>T: Create monitoring task
+    T->>T: Deduplicate: merge
+    T->>UI: Task in sidebar (HIGH)
+    W->>UI: Opens task
+    UI-->>W: Email + monitoring data + timeline
+    W->>UI: "Pull data, draft a reply"
+    UI->>UI: Executes tools
+    W->>UI: Approves reply
+    UI->>TL: Logs: reply sent, issue addressed
+    </div>
+  </div>
+
+  <p>When you open the task, you don't see just Ruthy's email. You see her email, the monitoring data showing the exact conversion drop, recent timeline context, and a draft reply that references the specific numbers. You review it, adjust a sentence, hit send. Ruthy gets a detailed, data-backed response. Total time: under a minute. Without this system, that's 15 minutes of pulling reports, cross-referencing data, and drafting from scratch.</p>
+
+  <h3>Error Path: Auto-Fix Cascade Prevention</h3>
+  <p>Stone & Tile's budget is overspending. Monitoring catches it and auto-fixes. But then the fix causes underspending, and a different rule fires. Without circuit breakers, this becomes an infinite loop. Here's what actually happens:</p>
+  <div class="diagram">
+    <div class="diagram-title">Circuit Breaker in Action</div>
+    <div class="mermaid">
+sequenceDiagram
+    participant R1 as Budget Rule
+    participant FIX as Auto-Fix
+    participant CB as Circuit Breaker
+    participant R2 as Underspend Rule
+    participant T as Task Queue
+    participant W as Will
+
+    R1->>FIX: Overspending, reduce budget
+    FIX->>CB: Fix applied, start cooldown
+    Note over CB: 1-hour cooldown active
+    R2->>CB: Now underspending!
+    CB->>T: Cooldown active - ask-permission instead
+    T->>W: "Budget reduced, now underspending. Adjust?"
+    </div>
+  </div>
+
+  <p>The circuit breaker catches the cascade. Instead of a second auto-fix that might overcorrect again, you get a single task: "I reduced Stone & Tile's budget because it was overspending. Now the underspend rule fired. Here's the data - want me to split the difference?" One human decision resolves what could have been an oscillating mess.</p>
+</section>
+
+<hr>
+
+<!-- ================================================ -->
+<!-- 14. CLIENT LIFECYCLE -->
+<!-- ================================================ -->
+<section id="journey">
+  <h2><span class="n">14</span> A Client's Journey</h2>
+  <p class="si">From the moment TheRealSleep signs a contract to the (hopefully distant) day they part ways, every phase of the relationship is managed through the same system. Here's the full arc.</p>
+
+  <div class="diagram">
+    <div class="diagram-title">Client Lifecycle</div>
+    <div class="mermaid">
+flowchart LR
+    subgraph ON["Onboarding"]
+        direction TB
+        S1["Contract"] --> S2["Billing"] --> S3["Access"]
+        S3 --> S4["Tracking"] ; S3 --> S5["Creative"]
+        S4 --> S6["Launch"] ; S5 --> S6
+        S6 --> S7["Monitoring On"]
+    end
+    subgraph ACT["Active"]
+        direction TB
+        C["Comms"] ; M["Monitoring"] ; R["Reports"] ; T["Tasks"]
+    end
+    subgraph LIFE["Lifecycle"]
+        QR["Reviews"] ; CR["Renewals"] ; EX["Expansion"]
+    end
+    subgraph OFF["Offboarding"]
+        direction TB
+        O1["Pause Campaigns"] --> O2["Final Report"] --> O3["Close Billing"] --> O4["Archive"]
+    end
+    ON --> ACT --> LIFE --> ACT --> OFF
+    style ON fill:#1a1d27,stroke:#34d399,color:#e2e4ed
+    style ACT fill:#1a1d27,stroke:#4f8ff7,color:#e2e4ed
+    style LIFE fill:#1a1d27,stroke:#a78bfa,color:#e2e4ed
+    style OFF fill:#1a1d27,stroke:#ef4444,color:#e2e4ed
+    </div>
+  </div>
+
+  <p>During the active phase, it's the daily rhythm: Comm handles their messages, Monitoring watches their campaigns, Reporting sends them updates, Admin tracks their billing. Lifecycle events (quarterly reviews, contract renewals, expansion into new services) feed back into the active phase. When Stone & Tile says "we want to add Facebook ads," that's a new Setup workflow triggered from a Comm task.</p>
+
+  <h3>Offboarding</h3>
+  <p>If a client leaves, the system handles it methodically:</p>
+  <ol>
+    <li>Pause all active campaigns</li>
+    <li>Deactivate monitoring rules - no zombie alerts firing for a client who's gone</li>
+    <li>Generate a final report - here's everything we did, here's where things stand</li>
+    <li>Close billing - final invoice, confirm payment received</li>
+    <li>Archive - the client record and full timeline are preserved permanently. If TheRealSleep comes back in a year, you reactivate from the archive with complete history. Every email, every ad change, every meeting note - still there.</li>
+  </ol>
+
+  <div class="co principle">
+    <div class="col">The Bottom Line</div>
+    From your perspective, there's one app and one pattern. Open a task, work with the AI, move on. The five domains are invisible plumbing - you never think about which domain you're in. You see a prioritized list, handle the fires first, and the system keeps everything else running. Stone & Tile's budget gets fixed while you sleep. Ruthy's email has a draft reply before you open it. ExclusiveMatchmaking's overdue invoice adjusts the tone of their next report automatically. That's the vision: you run an agency, not a switchboard.
+  </div>
+</section>
+
+</main>
+
+<div class="lightbox" id="lightbox">
+  <div class="lightbox-close" id="lightbox-close">&times;</div>
+  <div class="lightbox-content" id="lightbox-content"></div>
+</div>
+
+<script>
+  // Lightbox
+  const lightbox = document.getElementById('lightbox');
+  const lightboxContent = document.getElementById('lightbox-content');
+  const lightboxClose = document.getElementById('lightbox-close');
+
+  function openLightbox(el) {
+    const clone = el.cloneNode(true);
+    clone.style.cursor = 'default';
+    clone.style.border = 'none';
+    clone.style.margin = '0';
+    clone.style.maxWidth = 'none';
+    lightboxContent.innerHTML = '';
+    lightboxContent.appendChild(clone);
+    lightbox.classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeLightbox() {
+    lightbox.classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  lightbox.addEventListener('click', function(e) {
+    if (e.target === lightbox) closeLightbox();
+  });
+  lightboxClose.addEventListener('click', closeLightbox);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeLightbox();
+  });
+
+  document.addEventListener('click', function(e) {
+    const diagram = e.target.closest('.diagram, .mockup-frame');
+    if (diagram && !lightbox.classList.contains('open')) {
+      openLightbox(diagram);
+    }
+  });
+
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'dark',
+    themeVariables: {
+      darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+      primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+      tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+      nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+      titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+      actorTextColor: '#c9d1db', actorBkg: '#1f2d3d', actorBorder: '#14b8a6',
+      signalColor: '#14b8a6', labelBoxBkgColor: '#1f2d3d', labelBoxBorderColor: '#2a3a4d',
+      labelTextColor: '#c9d1db', noteBkgColor: '#1f2d3d', noteBorderColor: '#2a3a4d', noteTextColor: '#c9d1db',
+    },
+    flowchart: { curve: 'basis', padding: 16 },
+    sequence: { mirrorActors: false, messageMargin: 35 },
+  });
+  const sections = document.querySelectorAll('section[id]');
+  const navLinks = document.querySelectorAll('nav a');
+  window.addEventListener('scroll', () => {
+    let current = '';
+    sections.forEach(s => { if (s.getBoundingClientRect().top <= 100) current = s.id; });
+    navLinks.forEach(l => l.classList.toggle('active', l.getAttribute('href') === '#' + current));
+  });
+</script>
+</body>
+</html>
