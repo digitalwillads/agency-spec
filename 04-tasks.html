@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>04. The Task System - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html" class="current">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>The Task System</h1>
+<p class="page-subtitle">The universal unit of work. Every piece of work - no matter where it comes from - is a task. Understanding this one concept makes everything else click.</p>
+
+<h2>One Task Type</h2>
+
+<p>There is one kind of task. Not "email tasks" and "monitoring tasks" and "billing tasks." One kind. Where it came from is metadata - not a different type of object.</p>
+
+<p>This means the system has one queue, one set of priority rules, one lifecycle, one interface. No special cases. When you add a new domain or data source, it creates the same kind of task as everything else. The task model never changes.</p>
+
+<div class="callout">
+  <div class="callout-label">Design Philosophy</div>
+  The task system is like a postal service. It doesn't matter if the letter is a bill, a love letter, or a jury summons - the envelope, the addressing, the delivery route, and the mailbox are all the same. The content varies. The system for moving it doesn't.
+</div>
+
+<h2>Every Task Is a Conversation</h2>
+
+<p>A task isn't a card on a kanban board. It's a chat thread. You open it, and you're in a conversation with an AI that already has the context and the tools to resolve it.</p>
+
+<p>This is the core interaction model and it never changes:</p>
+
+<ol>
+  <li>Something happens (email arrives, rule fires, meeting generates action items)</li>
+  <li>An agent creates a task with context attached</li>
+  <li>The AI <strong>preprocesses</strong> - reads the timeline, gathers data, may draft a response</li>
+  <li>You open the task. Context is already there. You work it through conversation.</li>
+  <li>When resolved, the outcome is logged to the client's timeline</li>
+</ol>
+
+<p>Preprocessing is what makes this fast. You don't start from scratch. For a client email, the AI has already pulled the timeline, checked active tasks, and drafted a reply. For a monitoring alert, it's gathered the data and proposed a fix. You review, adjust, approve, done.</p>
+
+<h2>Priority</h2>
+
+<p>Every task has a priority that determines its position in the sidebar and whether it can break through the pull model.</p>
+
+<table>
+  <tr><th>Level</th><th>What Qualifies</th><th>Behavior</th></tr>
+  <tr><td><strong style="color:var(--red)">Critical</strong></td><td>Site down, account suspended, client threatening to leave</td><td>Pinned to top. <strong>Pushes a notification.</strong> The one exception to pull-based.</td></tr>
+  <tr><td><strong style="color:var(--orange)">High</strong></td><td>Client request needing timely response, approaching deadline</td><td>Above normal in sidebar. No push.</td></tr>
+  <tr><td><strong>Normal</strong></td><td>Standard work</td><td>Default position</td></tr>
+  <tr><td><strong style="color:var(--text-dim)">Low</strong></td><td>FYI, non-urgent admin, background</td><td>Below normal. Work when you get to it.</td></tr>
+</table>
+
+<h3>Two Priority Invariants</h3>
+<ul>
+  <li><strong>Tasks escalate over time.</strong> Unanswered client email for 24+ hours: Normal to High. Worsening monitoring alert: escalates. Aging problems don't stay invisible.</li>
+  <li><strong>User overrides are sticky.</strong> If you change a task's priority, the system respects it. It won't re-escalate something you deliberately deprioritized.</li>
+</ul>
+
+<h2>Lifecycle</h2>
+
+<p>Every task moves through the same states, regardless of what kind of work it represents:</p>
+
+<div class="diagram">
+  <div class="diagram-label">Task Lifecycle</div>
+  <div class="mermaid">
+stateDiagram-v2
+    [*] --> Pending: Created
+    Pending --> Ready: AI preprocesses
+    Ready --> InProgress: User opens
+    InProgress --> Blocked: Waiting on external
+    Blocked --> InProgress: Unblocked
+    InProgress --> Completed: Done
+    InProgress --> Deferred: Snoozed
+    Deferred --> Ready: Snooze expires
+    Completed --> [*]: Logged to timeline
+  </div>
+</div>
+
+<table>
+  <tr><th>State</th><th>What It Means</th><th>In the Sidebar</th></tr>
+  <tr><td><strong>Pending</strong></td><td>Created. AI hasn't preprocessed yet.</td><td>Visible (dimmed)</td></tr>
+  <tr><td><strong>Ready</strong></td><td>Context loaded. Ready for you.</td><td>Visible</td></tr>
+  <tr><td><strong>In Progress</strong></td><td>You've opened it and are working.</td><td>Highlighted</td></tr>
+  <tr><td><strong>Blocked</strong></td><td>Waiting on something external. Reason recorded.</td><td>Blocked indicator</td></tr>
+  <tr><td><strong>Deferred</strong></td><td>You chose "later." Has a return date.</td><td>Hidden until date</td></tr>
+  <tr><td><strong>Completed</strong></td><td>Done. Outcome logged to timeline.</td><td>Removed (searchable archive)</td></tr>
+</table>
+
+<h3>Two Lifecycle Invariants</h3>
+<ul>
+  <li><strong>Stale tasks re-preprocess.</strong> Unworked for 48+ hours? When you open it, the AI re-gathers current data. You never act on a stale snapshot.</li>
+  <li><strong>Completed tasks are searchable forever.</strong> Gone from the sidebar, alive in the archive. "What did we do about that Stone & Tile issue last month?" is always answerable.</li>
+</ul>
+
+<h2>Deduplication</h2>
+
+<p>Multiple agents can notice the same problem. Client emails about low leads while Monitoring detects a conversion drop. One issue, not two.</p>
+
+<p>The principle: <strong>one issue, one task.</strong> When two tasks match on the same client, similar timeframe, and related issue, they merge. Both trigger sources are visible in the merged task.</p>
+
+<h3>When Dedup Is Wrong</h3>
+<ul>
+  <li><strong>Split</strong> - incorrectly merged? Pull them apart. Each keeps original context.</li>
+  <li><strong>Merge</strong> - missed a connection? Combine two tasks into one.</li>
+</ul>
+<p>The system's dedup is a best guess. The user is the final authority.</p>
+
+<h2>What Never Changes</h2>
+
+<p>As the system grows - new domains, new agents, new data sources, new tools - the task system stays the same:</p>
+
+<ul>
+  <li>One task type. Source is metadata.</li>
+  <li>Every task is a conversation thread.</li>
+  <li>Every task has a priority that can escalate.</li>
+  <li>Every task moves through the same lifecycle.</li>
+  <li>Every completed task is logged to the timeline.</li>
+  <li>The user can always override, split, merge, defer, or reassign.</li>
+</ul>
+
+<p>If a new capability can't express its work as a task, something is wrong with how the capability was designed - not with the task system.</p>
+
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="03-timeline.html">&larr; 03. The Timeline</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="05-communication.html">05. Communication &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

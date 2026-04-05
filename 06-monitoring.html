@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06. Monitoring - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html" class="current">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>Monitoring</h1>
+<p class="page-subtitle">Rules watching ad accounts, websites, and tracking around the clock. Some are pure thresholds. Some use scoped AI judgment. All are defined and controlled by us.</p>
+
+<!-- ================================ -->
+<!-- WHAT MONITORING IS -->
+<!-- ================================ -->
+<h2>What Monitoring Is</h2>
+
+<p>The Monitoring domain watches things. It checks ad accounts, websites, conversion tracking, and email campaigns on defined schedules. When something needs attention, it either fixes it automatically or creates a task asking you what to do.</p>
+
+<p>Some rules are pure thresholds - "if daily spend exceeds 130% of budget, reduce the daily cap." Either the number is crossed or it isn't. No interpretation needed.</p>
+
+<p>Other rules use AI judgment, but <strong>scoped and programmed by us</strong>. "Review this week's search terms and flag anything irrelevant that's spending over $10" requires the AI to decide what's "irrelevant" - but it's doing so within a clear scope (search terms, this week, over $10) with a clear job (flag, don't act). It's not freelancing. It's operating within constraints we define.</p>
+
+<div class="callout">
+  <div class="callout-label">The Key Distinction</div>
+  The opposite of what we want is "just watch everything and tell me when something looks wrong." That produces unpredictable, untunable alerts. What we want is rules where <em>we</em> define: what data to look at, what question to ask, what threshold or criteria to apply, and what to do when it triggers. Some of those criteria are numeric (frequency > 3.0). Some require judgment (is this search term relevant?). But in both cases, the scope, the question, and the response are ours to define.
+</div>
+
+<!-- ================================ -->
+<!-- TWO TRIGGER TYPES -->
+<!-- ================================ -->
+<h2>Two Trigger Types</h2>
+
+<p>Every monitoring rule has a trigger that defines when it runs. There are two types:</p>
+
+<div class="card-row">
+  <div class="card" style="border-color: var(--accent);">
+    <div class="card-title">Action-Based Triggers</div>
+    <div class="card-body">Fire in response to an event. A new data point arrives, a webhook fires, a change is detected. The rule evaluates immediately.<br><br><strong>Examples:</strong> A Stripe webhook reports a failed payment. An ad platform reports a disapproval. The website health check returns a 503.</div>
+  </div>
+  <div class="card" style="border-color: var(--orange);">
+    <div class="card-title">Time-Based Triggers</div>
+    <div class="card-body">Fire on a schedule. Every 15 minutes, every hour, every morning at 6 AM. The rule pulls data at the scheduled time and evaluates.<br><br><strong>Examples:</strong> Check budget pacing every 4 hours. Review search terms daily at 6 AM. Check conversion volume weekly on Monday morning.</div>
+  </div>
+</div>
+
+<p>Most rules are time-based because most ad platform data isn't pushed in real-time - it has to be pulled. Action-based triggers are used for things that do push events: webhooks from Stripe, real-time uptime checks, platform notification callbacks.</p>
+
+<!-- ================================ -->
+<!-- WHAT GETS MONITORED -->
+<!-- ================================ -->
+<h2>What Gets Monitored</h2>
+
+<p>Anything that can be checked against a threshold can be monitored. The specific rules - what's watched, at what frequency, with what thresholds - are configuration, not architecture. They'll evolve as we add platforms and learn what matters. What doesn't change is the pattern: every rule has a data source, a threshold, a frequency, and a response (auto-fix or ask-permission).</p>
+
+<p>The specific rules - what's watched, what categories they fall into, what thresholds apply - are all configuration. They'll evolve constantly as we add platforms, learn what matters, and refine what's noise. The architecture doesn't need to know the categories in advance. It just needs to support: any data source, any condition (numeric threshold or scoped AI judgment), any frequency, any response mode.</p>
+
+<div class="callout">
+  <div class="callout-label">Design Principle</div>
+  Adding a new monitoring rule should be configuration, not code. Define the data source, the condition, the threshold, the frequency, and the response mode. The monitoring engine evaluates it the same way it evaluates every other rule. No special cases.
+</div>
+
+<!-- ================================ -->
+<!-- THRESHOLDS -->
+<!-- ================================ -->
+<h2>Thresholds</h2>
+
+<p>Every rule has a threshold - the number that determines when the rule fires. The system ships with sensible defaults, but every threshold is overridable per client.</p>
+
+<div class="example">
+  <div class="example-label">Example: Default vs. Client Override</div>
+  <p style="margin-bottom:8px;">The default budget pacing threshold is 130% - if a campaign spends more than 130% of its expected daily budget, the rule fires.</p>
+  <p style="margin:0;">But Stone & Tile runs aggressive campaigns with variable spend patterns. You set their budget pacing threshold to 150%. Now their campaigns don't trigger alerts until they're 50% over pace instead of 30%. Nzymes keeps the default 130%. Each client's thresholds are independent.</p>
+</div>
+
+<p>Thresholds are stored per client, per rule. When you override a threshold, it applies only to that client and that specific rule. All other rules for that client keep their defaults, and all other clients are unaffected.</p>
+
+<!-- ================================ -->
+<!-- DATA FRESHNESS -->
+<!-- ================================ -->
+<h2>Data Freshness Awareness</h2>
+
+<p>Ad platform data is delayed. Google Ads data can lag 3-6 hours. Facebook data can lag up to 24 hours for some metrics. The Monitoring domain knows this and accounts for it.</p>
+
+<p>When a rule evaluates, it checks the freshness of the data it's looking at. If the data is stale - older than the rule's expected freshness window - the rule does not fire a false alert. Instead, it logs a note: "Budget appears over pace, but this data is 8 hours old. Re-checking at next window." The rule re-evaluates at the next scheduled check when fresher data might be available.</p>
+
+<p>If data remains stale beyond a reasonable window (e.g., no fresh data for 48+ hours), that itself becomes an alert: "Unable to get fresh data from Google Ads for Stone & Tile. Last data is 52 hours old. Platform API issue or account access problem."</p>
+
+<!-- ================================ -->
+<!-- AUTO-FIX VS ASK -->
+<!-- ================================ -->
+<h2>Auto-Fix vs. Ask Permission</h2>
+
+<p>When a rule fires, one of two things happens: the system fixes the problem automatically, or it creates a task asking you what to do. Which behavior applies is configured per rule.</p>
+
+<table>
+  <tr>
+    <th>Behavior</th>
+    <th>When to Use</th>
+    <th>Example</th>
+  </tr>
+  <tr>
+    <td><strong>Auto-fix</strong></td>
+    <td>Clear-cut issues with obvious fixes. No judgment needed. Delay would cost money.</td>
+    <td>Budget overspending at 3 AM. Add negative keywords for irrelevant search terms. Pause a fatigued creative.</td>
+  </tr>
+  <tr>
+    <td><strong>Ask permission</strong></td>
+    <td>Ambiguous situations. Fixes that involve trade-offs. Changes the client might want input on.</td>
+    <td>CPA trending up but still within acceptable range - reduce budget or wait? Bid strategy in learning mode - is that expected or a problem?</td>
+  </tr>
+</table>
+
+<p>Auto-fix rules always create a review task after the fix is applied. You still see what happened and can reverse it if the fix was wrong. The difference is that the fix happens immediately instead of waiting for you to wake up or check the app.</p>
+
+<h3>Severity Levels on Auto-Fix</h3>
+
+<p>Auto-fix actions are categorized by severity - how much they change:</p>
+
+<ul>
+  <li><strong>Minor</strong> - adding negative keywords, pausing a single ad, small budget cap adjustments. These auto-fix by default and the review task is Normal priority.</li>
+  <li><strong>Moderate</strong> - larger budget changes, pausing an entire ad set, changing bid strategies. These can auto-fix but the review task is High priority.</li>
+  <li><strong>Major</strong> - pausing an entire campaign, significant budget cuts, structural changes. These default to ask-permission regardless of the rule setting. Some things should always have a human in the loop.</li>
+</ul>
+
+<h3>Auto-Fix Failure Escalation</h3>
+
+<p>If an auto-fix is applied but the problem persists at the next evaluation, the task escalates. A Normal review becomes High. If it persists again, it becomes Critical. The system is saying: "I tried to fix this, it didn't work, you need to look at it."</p>
+
+<div class="example">
+  <div class="example-label">Example: Auto-Fix and Escalation</div>
+  <p style="margin-bottom:8px;">It's 3 AM. Stone & Tile's Search campaign is spending at 160% of pace because a broad match keyword went wild. The budget pacing rule fires. It's configured as auto-fix.</p>
+  <p style="margin-bottom:8px;">The system reduces the daily budget cap and adds the offending term as a negative keyword. A Normal task is created: "Stone & Tile - Budget auto-fixed overnight. Review."</p>
+  <p style="margin:0;">At the 7 AM check, spend is still elevated - another broad match term picked up the slack. The task escalates to High. The AI adds: "Initial fix didn't fully resolve. A second term is now overspending. Recommend reviewing the entire broad match strategy." Now you know this needs attention today.</p>
+</div>
+
+<!-- ================================ -->
+<!-- CIRCUIT BREAKERS -->
+<!-- ================================ -->
+<h2>Circuit Breakers</h2>
+
+<p>Auto-fix is powerful, but it needs guardrails. Circuit breakers prevent the monitoring system from making too many changes too fast.</p>
+
+<h3>Cooldown</h3>
+
+<p>After an auto-fix is applied, the rule enters a cooldown period before it can fire again. Default cooldown is 1 hour. This prevents rapid-fire fixes where the system keeps adjusting the same thing every 15 minutes because the data hasn't settled yet.</p>
+
+<h3>Max Fixes Per Window</h3>
+
+<p>A single rule can apply at most 3 auto-fixes per 24-hour period for a given client. After 3, the rule switches to ask-permission mode for that client until the window resets. If the same problem keeps happening, a human needs to investigate the root cause.</p>
+
+<h3>Contradiction Detection</h3>
+
+<p>If two rules are trying to do opposite things - one rule wants to increase budget and another wants to decrease it, one wants to enable a campaign and another wants to pause it - the system detects the contradiction and escalates both to ask-permission. Neither auto-fix runs. A task is created explaining the conflict: "Budget rule wants to increase Stone & Tile Search daily cap, but pacing rule wants to decrease it. Manual decision needed."</p>
+
+<div class="callout">
+  <div class="callout-label">Safety Net</div>
+  Circuit breakers exist because auto-fix operates on client ad accounts - real money. A bug in a monitoring rule, a data anomaly, or an unexpected interaction between rules could cause real damage if left unchecked. The circuit breakers ensure that the worst case is limited and always surfaces to a human.
+</div>
+
+<!-- ================================ -->
+<!-- MONITORING DEDUPLICATION -->
+<!-- ================================ -->
+<h2>Monitoring Deduplication</h2>
+
+<p>Multiple rules can fire about the same underlying issue. If budget is overspending, you might get: a budget pacing alert, a cost trend alert, and a bid strategy alert - all pointing to the same problem (broad match keyword eating budget).</p>
+
+<p>Rules are organized into groups. Rules in the same group that fire for the same client within the same evaluation window are consolidated into a single task. Instead of 3 separate tasks, you get one task that includes all 3 signals: "Stone & Tile - Multiple budget signals: overspending at 160%, CPA trending up 25%, bid strategy flagged as limited by budget."</p>
+
+<p>The group structure is configured when rules are created. Related rules that frequently fire together should be in the same group.</p>
+
+<!-- ================================ -->
+<!-- RULE LIFECYCLE -->
+<!-- ================================ -->
+<h2>Rule Lifecycle</h2>
+
+<h3>New Client Grace Period</h3>
+
+<p>When a new client is onboarded, monitoring rules are activated but run in observation mode for 2 weeks. During this period, rules evaluate and log what they would do, but don't auto-fix or create tasks. This lets the system establish baselines - what's "normal" for this client - before it starts flagging anomalies.</p>
+
+<p>After the grace period, rules go live. The observation data helps set initial per-client thresholds if the defaults aren't appropriate.</p>
+
+<div class="example">
+  <div class="example-label">Example: Grace Period</div>
+  <p style="margin:0;">ExclusiveMatchmaking is a new client. During their first 2 weeks, the monitoring system observes: their Google Ads campaigns regularly spend at 120-125% of the daily budget - that's their normal pattern because of how their bid strategy works. Without the grace period, the default 130% threshold would fire alerts on day one. With it, the system learns their baseline and you can set their threshold to 135% before rules go live.</p>
+</div>
+
+<h3>Pause Per Client</h3>
+
+<p>Any rule can be paused for a specific client. Maybe Stone & Tile is running a special promotion and you know spend will spike - you pause the budget pacing rule for Stone & Tile for 5 days. All other clients' rules keep running. All other Stone & Tile rules keep running. Only the specific rule-client combination is paused.</p>
+
+<h3>Offboard Deactivation</h3>
+
+<p>When a client is offboarded (contract ends, they leave), all monitoring rules for that client are deactivated. They're not deleted - just deactivated. If the client returns, the rules can be reactivated with their per-client thresholds intact.</p>
+
+<h3>Missed Checks</h3>
+
+<p>If the system goes down and comes back up, it catches up on missed checks. If the 6 AM search term review didn't run because of an outage, it runs as soon as the system is back. Missed checks are processed in chronological order, and the system notes that they're catch-up evaluations, not real-time: "Search term review (catch-up, originally scheduled 6 AM, ran at 8:15 AM)."</p>
+
+<!-- ================================ -->
+<!-- RULE MANAGEMENT -->
+<!-- ================================ -->
+<h2>Rule Management</h2>
+
+<p>Rules are managed through the chat, like everything else. You tell the AI what you want: "Show me all active rules for Stone & Tile." "Change their budget pacing threshold from 150% to 140%." "Add a new rule for Nzymes: if Facebook frequency exceeds 2.5, ask me before pausing." "What rules fired this week?"</p>
+
+<p>The AI has tools to list, create, update, and delete rules. It can show you the current state of any rule, its per-client overrides, and its fire history. All through conversation.</p>
+
+<div class="example">
+  <div class="example-label">Example</div>
+  <p style="margin-bottom:8px;"><strong>You:</strong> "Stone & Tile's promotion ended. Drop their budget pacing threshold back to 140%."</p>
+  <p style="margin-bottom:8px;"><strong>AI:</strong> Updates the rule, confirms: "Stone & Tile budget pacing threshold changed from 150% to 140%. Takes effect on the next evaluation. Their other rules are unchanged."</p>
+  <p style="margin:0;"><strong>You:</strong> "What rules do they have active?" The AI lists them all with current thresholds, modes, and when each last fired.</p>
+</div>
+
+<!-- ================================ -->
+<!-- PROPOSING NEW RULES -->
+<!-- ================================ -->
+<h2>Proposing New Rules</h2>
+
+<p>The system can propose new monitoring rules, but only during the course of existing work - never unprompted. If you're working a task and the AI notices a pattern that should be monitored, it can suggest a rule.</p>
+
+<div class="example">
+  <div class="example-label">Example: Rule Proposal</div>
+  <p style="margin-bottom:8px;">You're working a task for TheRealSleep where their Google Ads conversion tracking stopped for 3 days before anyone noticed. After fixing it, the AI says:</p>
+  <p style="margin-bottom:8px;">"This could have been caught sooner. I recommend adding a monitoring rule: if TheRealSleep's Google Ads conversions drop to zero for more than 24 hours and the data is fresh, create a High priority alert. Want me to create this rule?"</p>
+  <p style="margin:0;">You say yes. The AI proposes the specific parameters: trigger type (time-based, every 6 hours), threshold (0 conversions for 24+ hours), data freshness requirement (data must be <6 hours old), mode (ask-permission). You approve each parameter. The rule is created.</p>
+</div>
+
+<p>The system never creates monitoring rules on its own. Every rule is either a system default (shipped with the product) or explicitly proposed and approved by you. The AI proposes, including all specific parameters - threshold, frequency, mode, scope. You approve, modify, or reject.</p>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="05-communication.html">&larr; 05. Communication</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="07-actions.html">07. Actions &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

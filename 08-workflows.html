@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>08. Workflows - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html" class="current">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>Workflows</h1>
+<p class="page-subtitle">Structured multi-step processes for the work you do over and over. Onboarding, campaign launches, tracking installs - codified into repeatable sequences.</p>
+
+<!-- ================================ -->
+<!-- WHAT A WORKFLOW IS -->
+<!-- ================================ -->
+<h2>What a Workflow Is</h2>
+
+<p>Some work is ad hoc - Ruthy emails a question, you answer it, done. But other work follows a known pattern every time. Onboarding a new client always requires the same steps: set up billing, get ad account access, install conversion tracking, create campaigns, launch. Campaign launches always require the same sequence. Platform expansions always require the same prep work.</p>
+
+<p>A workflow is that known pattern, codified. It's a sequence of steps with dependencies - some steps run in parallel, some must wait for others to finish. Each step has clear completion conditions, and the system verifies those conditions are actually met before moving on.</p>
+
+<p>Workflows are not task templates. A task is a single unit of work with a conversation thread. A workflow is an orchestration layer that creates and coordinates multiple tasks, tracks progress across all of them, and ensures nothing falls through the cracks.</p>
+
+<div class="callout">
+  <div class="callout-label">Key Distinction</div>
+  Tasks are individual pieces of work. Workflows are the structure that connects those pieces into a coherent process. A workflow is a parent that spawns child tasks - one per step. When all the child tasks are done (and verified), the workflow is done.
+</div>
+
+<!-- ================================ -->
+<!-- WORKFLOW STEPS -->
+<!-- ================================ -->
+<h2>Steps, Dependencies, and Parallelism</h2>
+
+<p>Every workflow is defined as a directed graph of steps. Some steps depend on others - you can't launch a campaign before you've built it. Some steps are independent - creative production can happen at the same time as conversion tracking installation. The workflow engine handles this automatically.</p>
+
+<p>Each step in a workflow has:</p>
+
+<ul>
+  <li><strong>A name</strong> - what this step is (e.g., "Install Conversion Tracking")</li>
+  <li><strong>An owner</strong> - who is responsible (a specific agent, a team member, or the client)</li>
+  <li><strong>Dependencies</strong> - which steps must complete before this one can start</li>
+  <li><strong>Completion conditions</strong> - what must be true for this step to be considered done</li>
+  <li><strong>Validation method</strong> - how the system verifies the completion conditions are actually met</li>
+</ul>
+
+<div class="example">
+  <div class="example-label">Example: Step Dependencies</div>
+  <p style="margin-bottom:8px;">In a New Client Onboarding workflow for Stone & Tile Shoppe:</p>
+  <p style="margin-bottom:8px;"><strong>Step: "Install Conversion Tracking"</strong> depends on "Ad Account Access" (you need access to the account to install tracking). But it does NOT depend on "Creative Production" - those can happen at the same time.</p>
+  <p style="margin:0;"><strong>Step: "Campaign Launch"</strong> depends on BOTH "Install Conversion Tracking" and "Creative Production" - you need working tracking AND finished ads before you go live. The workflow engine won't allow this step to start until both are verified complete.</p>
+</div>
+
+<!-- ================================ -->
+<!-- STEP STATES -->
+<!-- ================================ -->
+<h2>Step States</h2>
+
+<p>Each step in a workflow is always in one of four states:</p>
+
+<table>
+  <tr>
+    <th>State</th>
+    <th>Meaning</th>
+    <th>What Happens</th>
+  </tr>
+  <tr>
+    <td><strong>Pending</strong></td>
+    <td>Waiting for dependencies to complete</td>
+    <td>No task created yet. The step is visible in the workflow view but grayed out. The system is watching its dependencies.</td>
+  </tr>
+  <tr>
+    <td><strong>InProgress</strong></td>
+    <td>All dependencies met, work is active</td>
+    <td>A task has been created and assigned. Someone (an agent, a team member, or the client) is working on it.</td>
+  </tr>
+  <tr>
+    <td><strong>Blocked</strong></td>
+    <td>Can't proceed, waiting on something external</td>
+    <td>The step was InProgress but hit a wall. The blocking reason is recorded (e.g., "Waiting on client to provide Google Ads MCC access"). Reporting is notified to follow up.</td>
+  </tr>
+  <tr>
+    <td><strong>Complete</strong></td>
+    <td>Done and verified</td>
+    <td>Completion conditions have been checked - either automatically by the system or confirmed by a human. The step is locked. Dependent steps are now eligible to start.</td>
+  </tr>
+</table>
+
+<div class="example">
+  <div class="example-label">Example: A Step Gets Blocked</div>
+  <p style="margin-bottom:8px;">ExclusiveMatchmaking is being onboarded. The "Ad Account Access" step is InProgress - we've sent them instructions for granting MCC access to their Google Ads account. Three days pass and they haven't done it.</p>
+  <p style="margin-bottom:8px;">The step moves to <strong>Blocked</strong> with reason: "Client has not granted Google Ads MCC access. Instructions sent April 1, no response." Everything downstream - conversion tracking, campaign build, launch - stays Pending.</p>
+  <p style="margin:0;">The Reporting agent is automatically notified. It sends a gentle follow-up to ExclusiveMatchmaking reminding them about the access request. If they don't respond in 3 more days, it escalates (more direct follow-up). If still nothing, it flags you.</p>
+</div>
+
+<!-- ================================ -->
+<!-- STEP VALIDATION -->
+<!-- ================================ -->
+<h2>Step Validation</h2>
+
+<p>This is where workflows differ from a simple checklist. When a step is marked as complete, the system doesn't just take your word for it - it verifies.</p>
+
+<p>Each step has a validation method. Some are automated (the system runs a check). Some require human confirmation. The point is that nothing advances until the completion conditions are actually true, not just claimed to be true.</p>
+
+<table>
+  <tr>
+    <th>Step</th>
+    <th>Completion Condition</th>
+    <th>How the System Validates</th>
+  </tr>
+  <tr>
+    <td><strong>Billing Setup</strong></td>
+    <td>Client has an active subscription in Stripe</td>
+    <td>Automated: Query Stripe API, confirm subscription status is "active" and first invoice is paid.</td>
+  </tr>
+  <tr>
+    <td><strong>Ad Account Access</strong></td>
+    <td>We have admin access to the client's ad accounts</td>
+    <td>Automated: Attempt API call to the ad account. If it returns data, access is confirmed.</td>
+  </tr>
+  <tr>
+    <td><strong>Conversion Tracking</strong></td>
+    <td>Pixels/tags are installed and firing correctly</td>
+    <td>Automated: Fire a test event, verify it appears in the ad platform's conversion data within the expected window.</td>
+  </tr>
+  <tr>
+    <td><strong>Creative Production</strong></td>
+    <td>All required ad creatives are produced and approved</td>
+    <td>Human confirmation: You or the team member reviews the creatives and marks them approved.</td>
+  </tr>
+  <tr>
+    <td><strong>Campaign Launch</strong></td>
+    <td>Campaigns are live and serving impressions</td>
+    <td>Automated: Query ad platform API, confirm campaign status is "ENABLED" and impressions > 0 within 2 hours of launch.</td>
+  </tr>
+</table>
+
+<div class="example">
+  <div class="example-label">Example: Validation Catches a Problem</div>
+  <p style="margin-bottom:8px;">Tristan installs the Facebook pixel on TheRealSleep's website and marks the "Conversion Tracking" step as complete. The system runs validation: it fires a test purchase event and waits for it to appear in Facebook's Events Manager.</p>
+  <p style="margin-bottom:8px;">Nothing shows up. The pixel is on the page but the event trigger is misconfigured - it's firing on page load instead of on form submission.</p>
+  <p style="margin:0;">The step stays InProgress. The system creates a task: "TheRealSleep - Conversion tracking validation failed. Pixel installed but purchase event not firing correctly. Test event sent at 2:15 PM, not received by Facebook after 30 minutes." Tristan fixes the trigger, marks it complete again, and this time the test event goes through. Now the step is truly Complete.</p>
+</div>
+
+<!-- ================================ -->
+<!-- NEW CLIENT ONBOARDING -->
+<!-- ================================ -->
+<h2>Example Workflow: New Client Onboarding</h2>
+
+<p>This is the most common and most important workflow. Every new client goes through it. Here's the full sequence:</p>
+
+<div class="diagram">
+  <div class="diagram-label">New Client Onboarding Workflow</div>
+  <div class="mermaid">
+flowchart TD
+    CS["Contract Signed"] --> BS["Billing Setup"]
+    BS --> AAA["Ad Account Access"]
+    AAA --> CT["Conversion Tracking<br/>Install & Verify"]
+    AAA --> CP["Creative Production"]
+    CT --> CL["Campaign Launch"]
+    CP --> CL
+    CL --> HM["Handoff to Monitoring"]
+
+    style CS fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style BS fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style AAA fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style CT fill:#1f2d3d,stroke:#e6a731,color:#c9d1db
+    style CP fill:#1f2d3d,stroke:#e6a731,color:#c9d1db
+    style CL fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style HM fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+  </div>
+</div>
+
+<p>Walking through each step:</p>
+
+<ol>
+  <li><strong>Contract Signed</strong> - The trigger. When a signed contract is detected (via the contract management integration), the workflow kicks off automatically.</li>
+  <li><strong>Billing Setup</strong> - Create the client's Stripe subscription, send the first invoice, confirm payment. Validated: Stripe shows active subscription.</li>
+  <li><strong>Ad Account Access</strong> - Send the client instructions for granting access to their Google Ads, Facebook Ads, or both. Wait for access. Validated: API call to the account succeeds.</li>
+  <li><strong>Conversion Tracking</strong> - Install pixels, tags, and event tracking on the client's website. Validated: test events fire and appear in the ad platform. <em>Runs in parallel with Creative Production.</em></li>
+  <li><strong>Creative Production</strong> - Create ad copy, images, videos. Get client approval on creatives. Validated: human confirmation that all creatives are approved. <em>Runs in parallel with Conversion Tracking.</em></li>
+  <li><strong>Campaign Launch</strong> - Build campaigns in the ad platform, set budgets, targeting, and bid strategies. Launch. Validated: campaigns are enabled and serving impressions.</li>
+  <li><strong>Handoff to Monitoring</strong> - The final step. Monitoring rules are activated for this client. The system starts watching their campaigns. See "The Setup-to-Monitoring Handoff" below.</li>
+</ol>
+
+<div class="example">
+  <div class="example-label">Example: Stone & Tile Onboarding, Day 5</div>
+  <p style="margin-bottom:8px;">Stone & Tile signed their contract on March 28. Here's where the workflow stands on April 2:</p>
+  <p style="margin-bottom:8px;"><strong>Billing Setup</strong> - Complete. Stripe subscription active, first invoice paid March 29.</p>
+  <p style="margin-bottom:8px;"><strong>Ad Account Access</strong> - Complete. Google Ads MCC access granted March 30. Facebook Business Manager access granted March 31.</p>
+  <p style="margin-bottom:8px;"><strong>Conversion Tracking</strong> - InProgress. Google Ads tag installed and verified. Facebook pixel installed but validation failed - retesting after fix by Isaac.</p>
+  <p style="margin-bottom:8px;"><strong>Creative Production</strong> - InProgress. Reileigh has 6 of 8 ad creatives done. Waiting on client approval for the first batch.</p>
+  <p style="margin:0;"><strong>Campaign Launch</strong> - Pending. Waiting on both Conversion Tracking and Creative Production to complete.</p>
+</div>
+
+<!-- ================================ -->
+<!-- SETUP TO MONITORING HANDOFF -->
+<!-- ================================ -->
+<h2>The Setup-to-Monitoring Handoff</h2>
+
+<p>This is one of the most important transitions in the system. When campaigns launch, the client shifts from "being set up" to "being managed." The Setup domain's job is done. The Monitoring domain's job begins.</p>
+
+<p>The handoff is not a manual switch. It happens automatically as the final step of any workflow that ends with live campaigns:</p>
+
+<ol>
+  <li><strong>Campaign goes live</strong> - validated by the workflow engine (campaigns enabled, impressions serving).</li>
+  <li><strong>Monitoring rules activate</strong> - the system registers the client's campaigns with the Monitoring domain. Standard rules are applied: budget pacing, conversion tracking health, performance anomaly detection.</li>
+  <li><strong>Grace period begins</strong> - new campaigns behave erratically in the first 48-72 hours as ad platforms optimize. Monitoring rules start in "observation mode" - they log data but don't alert or auto-fix during the grace period. This prevents a flood of false alarms during the learning phase.</li>
+  <li><strong>Grace period ends</strong> - monitoring rules go fully active. Any anomalies now generate real alerts and auto-fixes.</li>
+  <li><strong>Timeline entry</strong> - the handoff is logged: "Stone & Tile Shoppe - campaigns launched, monitoring active, grace period ends April 5."</li>
+</ol>
+
+<div class="callout">
+  <div class="callout-label">Why the Grace Period Matters</div>
+  Without it, every new campaign launch would generate a wave of alerts. "CPA is $45 when the target is $25!" - yes, because the campaign launched 6 hours ago and has 12 clicks. The grace period lets the platform's algorithms settle before the system starts judging performance. The length is configurable per platform (Google Ads typically needs 7-14 days for Smart Bidding to optimize, Facebook needs 3-5 days for the learning phase).
+</div>
+
+<!-- ================================ -->
+<!-- PROGRESS VISIBILITY -->
+<!-- ================================ -->
+<h2>Progress Visibility</h2>
+
+<p>Every active workflow appears as a single parent task in the task system. You don't have to hunt through individual step tasks to understand where an onboarding stands. The parent task is the bird's-eye view.</p>
+
+<p>The parent task shows:</p>
+
+<ul>
+  <li><strong>Overall progress</strong> - "4 of 7 steps complete" with a visual progress bar</li>
+  <li><strong>Current state of each step</strong> - which are Complete, InProgress, Blocked, Pending</li>
+  <li><strong>Blockers</strong> - any Blocked steps are highlighted with their reason and how long they've been blocked</li>
+  <li><strong>Time tracking</strong> - when the workflow started, estimated completion based on current pace, and any steps that are taking longer than expected</li>
+</ul>
+
+<p>You can also ask the AI directly: "Show me all active workflows" or "Where does ExclusiveMatchmaking's onboarding stand?" and get a full status through the chat.</p>
+
+<!-- ================================ -->
+<!-- BLOCKED STEPS AND REPORTING -->
+<!-- ================================ -->
+<h2>Blocked Steps Notify Reporting</h2>
+
+<p>When a workflow step moves to Blocked, the system doesn't just sit and wait. It automatically notifies the Reporting domain, which handles client follow-up.</p>
+
+<p>The flow:</p>
+
+<ol>
+  <li>A step moves to Blocked with a reason (e.g., "Client hasn't provided brand assets")</li>
+  <li>The workflow engine creates a follow-up task in the Reporting domain</li>
+  <li>Reporting sends the client a gentle reminder after 3 days</li>
+  <li>If still blocked after 6 days, Reporting sends a more direct follow-up</li>
+  <li>If still blocked after 10 days, Reporting flags it to you with a recommendation ("ExclusiveMatchmaking has been blocked on ad account access for 10 days. Their onboarding can't progress. Call them?")</li>
+</ol>
+
+<p>The escalation cadence is configurable per client and per step type. Some steps are more urgent than others - a blocked campaign launch gets faster escalation than a blocked creative revision.</p>
+
+<!-- ================================ -->
+<!-- OTHER WORKFLOW TYPES -->
+<!-- ================================ -->
+<h2>Other Workflow Types</h2>
+
+<p>New Client Onboarding is the most complex workflow, but it's not the only one. Here are the other standard workflow types:</p>
+
+<h3>Campaign Launch</h3>
+<p>Used when launching new campaigns for an existing client (not a new client onboarding). Steps: campaign strategy approval, creative production, campaign build, QA review, launch, handoff to monitoring. Simpler than onboarding because billing and account access already exist.</p>
+
+<div class="example">
+  <div class="example-label">Example</div>
+  <p style="margin:0;">Nzymes wants to test video ads on Facebook. Eddie kicks off a Campaign Launch workflow. Reileigh produces the video creatives, Isaac builds the campaign in Ads Manager, you review and approve, it launches, and Monitoring picks it up automatically. The whole process is tracked as one workflow with clear step ownership.</p>
+</div>
+
+<h3>Conversion Tracking Install</h3>
+<p>Used when installing or reinstalling tracking for a client - either as part of onboarding or because something broke. Steps: audit current tracking setup, install/reinstall tags, configure events, run validation tests, confirm data flowing in ad platform. The validation step is especially rigorous here because bad tracking wastes ad spend silently.</p>
+
+<div class="example">
+  <div class="example-label">Example</div>
+  <p style="margin:0;">TheRealSleep redesigned their website and the old tracking broke. A Conversion Tracking Install workflow is triggered. The system audits what's missing, Isaac installs the new tags, the system fires test events - purchase, lead form, phone call click - and validates each one. Only when all events are confirmed flowing does the step complete.</p>
+</div>
+
+<h3>Platform Expansion</h3>
+<p>Used when adding a new advertising platform for an existing client. Steps: platform account setup, conversion tracking for the new platform, creative adaptation (resize/reformat for the new platform's specs), campaign build, launch, handoff to monitoring. Similar to onboarding but scoped to a single platform.</p>
+
+<div class="example">
+  <div class="example-label">Example</div>
+  <p style="margin:0;">Stone & Tile has been running Google Ads successfully. Now you want to expand to Facebook. The Platform Expansion workflow handles: getting Facebook Business Manager access, installing the Facebook pixel, adapting the existing Google Ads creatives to Facebook specs, building the Facebook campaigns, and launching with monitoring.</p>
+</div>
+
+<!-- ================================ -->
+<!-- DEFINING NEW WORKFLOWS -->
+<!-- ================================ -->
+<h2>Defining New Workflow Types</h2>
+
+<p>The workflow types listed above are the starting set. Over time, new patterns will emerge - maybe a "Creative Refresh" workflow when ad fatigue hits across multiple campaigns, or a "Contract Renewal" workflow that coordinates Admin and Reporting 90 days before expiry.</p>
+
+<p>New workflow types are defined by specifying:</p>
+
+<ul>
+  <li><strong>Steps</strong> - what needs to happen, in what order</li>
+  <li><strong>Dependencies</strong> - which steps block which</li>
+  <li><strong>Owners</strong> - who handles each step (agent, team member, client)</li>
+  <li><strong>Validation methods</strong> - how to verify each step is truly done</li>
+  <li><strong>Triggers</strong> - what event starts this workflow (manual, or automatic based on a system event)</li>
+</ul>
+
+<p>The architecture is the same regardless of the workflow type. Steps, states, dependencies, validation - it's all the same engine. Only the specific steps and their configuration change.</p>
+
+<div class="callout">
+  <div class="callout-label">Design Principle</div>
+  Workflows should emerge from observed patterns in the work, not be designed speculatively. When you notice the team doing the same sequence of steps for the third time, that's when you define a workflow. The system should make defining new ones straightforward - not a development project.
+</div>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="07-actions.html">&larr; 07. Actions</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="09-reporting-admin.html">09. Reporting & Admin &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

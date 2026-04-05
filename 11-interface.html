@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11. The Interface - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+<style>
+/* Mockup styles */
+.mockup {
+  background: #0d1520;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  margin: 24px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mockup-titlebar {
+  background: #0a1018;
+  padding: 8px 16px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mockup-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.mockup-dot.red { background: #e05252; }
+.mockup-dot.yellow { background: #e6a731; }
+.mockup-dot.green { background: #14b8a6; }
+
+.mockup-titlebar span {
+  color: var(--text-dim);
+  font-size: 12px;
+  margin-left: 8px;
+}
+
+.mockup-body {
+  display: flex;
+  min-height: 520px;
+}
+
+.mockup-sidebar {
+  width: 300px;
+  min-width: 300px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  padding: 0;
+  overflow-y: auto;
+}
+
+.mockup-sidebar-header {
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mockup-sidebar-header input {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 7px 10px;
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+}
+
+.mockup-section-label {
+  padding: 10px 16px 4px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.mockup-section-label.critical { color: var(--red); }
+.mockup-section-label.high { color: var(--orange); }
+.mockup-section-label.normal { color: var(--text-dim); }
+
+.mockup-task {
+  padding: 10px 16px;
+  border-bottom: 1px solid rgba(42, 58, 77, 0.5);
+  cursor: pointer;
+}
+
+.mockup-task:hover {
+  background: rgba(20, 184, 166, 0.04);
+}
+
+.mockup-task.active {
+  background: rgba(20, 184, 166, 0.08);
+  border-left: 3px solid var(--accent);
+  padding-left: 13px;
+}
+
+.mockup-task-title {
+  font-weight: 600;
+  font-size: 13px;
+  color: var(--text);
+  margin-bottom: 3px;
+}
+
+.mockup-task-meta {
+  font-size: 11px;
+  color: var(--text-dim);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.mockup-tag {
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+
+.mockup-tag.monitoring { background: rgba(230, 167, 49, 0.15); color: var(--orange); }
+.mockup-tag.comm { background: rgba(20, 184, 166, 0.15); color: var(--accent); }
+.mockup-tag.setup { background: rgba(155, 142, 196, 0.15); color: var(--purple); }
+.mockup-tag.admin { background: rgba(224, 82, 82, 0.15); color: var(--red); }
+
+.mockup-main {
+  flex: 1;
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.mockup-main-header {
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.mockup-main-header h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 4px;
+}
+
+.mockup-main-header p {
+  font-size: 12px;
+  color: var(--text-dim);
+  margin: 0;
+}
+
+.mockup-message {
+  padding: 12px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.mockup-message.system {
+  background: var(--surface);
+  border: 1px solid var(--border);
+}
+
+.mockup-message.user {
+  background: rgba(20, 184, 166, 0.08);
+  border: 1px solid rgba(20, 184, 166, 0.2);
+  margin-left: 40px;
+}
+
+.mockup-message-author {
+  font-size: 11px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.mockup-message-author.ai { color: var(--accent); }
+.mockup-message-author.you { color: var(--text-dim); }
+
+.mockup-tool-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin: 8px 0;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mockup-tool-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.mockup-tool-dot.success { background: var(--green); }
+.mockup-tool-dot.fail { background: var(--red); }
+
+.mockup-input-row {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.mockup-input-row input {
+  flex: 1;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 9px 12px;
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+
+.mockup-input-row button {
+  background: var(--accent);
+  color: #0d1520;
+  border: none;
+  border-radius: 6px;
+  padding: 9px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html" class="current">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>The Interface</h1>
+<p class="page-subtitle">One app, one sidebar, one conversation area. Everything you need to run the agency, nothing you don't.</p>
+
+<!-- ================================ -->
+<!-- LAYOUT OVERVIEW -->
+<!-- ================================ -->
+<h2>Layout Overview</h2>
+
+<p>The interface is a two-panel layout: a sidebar on the left with your task list, and a main conversation area on the right where you work. Dark theme matching the brand. No dashboards, no widgets, no charts competing for attention. Just a list of things that need doing, and a place to do them.</p>
+
+<p>The sidebar is your control surface. The main area is your workspace. That's it. Two panels, one pattern.</p>
+
+<!-- ================================ -->
+<!-- THE SIDEBAR -->
+<!-- ================================ -->
+<h2>The Sidebar</h2>
+
+<p>The sidebar is a task list sorted by priority. CRITICAL items at the top (red), then HIGH (orange), then NORMAL, then LOW. Within each priority level, tasks are sorted by age - oldest first, so nothing gets buried.</p>
+
+<p>Each task in the sidebar shows:</p>
+
+<ul>
+  <li><strong>Client name</strong> - who this is about</li>
+  <li><strong>Task title</strong> - what it is, in plain language</li>
+  <li><strong>Domain tag</strong> - which domain created it (Monitoring, Communication, Setup, Reporting, Admin)</li>
+  <li><strong>Age</strong> - how long since it was created</li>
+  <li><strong>Assignee</strong> - if it's assigned to a team member</li>
+</ul>
+
+<h3>Search and Filters</h3>
+
+<p>The sidebar has a search bar at the top. Type a client name, a keyword, or a domain name and the list filters instantly. Below the search bar, filter buttons let you narrow by:</p>
+
+<ul>
+  <li><strong>Domain</strong> - show only Monitoring tasks, only Communication tasks, etc.</li>
+  <li><strong>Client</strong> - show all tasks for a specific client</li>
+  <li><strong>Assignee</strong> - show tasks assigned to Eddie, Reileigh, Tristan, or Isaac</li>
+  <li><strong>Status</strong> - show only open tasks, or include completed ones</li>
+</ul>
+
+<h3>Keyboard Navigation and Bulk Operations</h3>
+
+<p>The sidebar supports full keyboard navigation. Arrow keys to move through the list, Enter to open a task, Escape to go back to the list. For bulk operations - marking multiple tasks done, reassigning a batch, changing priorities - select multiple tasks with Shift+Click or Cmd+Click, then use the action menu.</p>
+
+<!-- ================================ -->
+<!-- THE MOCKUP -->
+<!-- ================================ -->
+<h2>The Mockup</h2>
+
+<p>Here's what it looks like. The sidebar shows real tasks sorted by priority. The main area shows an active conversation where the AI has already done its preprocessing.</p>
+
+<div class="mockup">
+  <div class="mockup-titlebar">
+    <div class="mockup-dot red"></div>
+    <div class="mockup-dot yellow"></div>
+    <div class="mockup-dot green"></div>
+    <span>Agency Command Center</span>
+  </div>
+  <div class="mockup-body">
+    <div class="mockup-sidebar">
+      <div class="mockup-sidebar-header">
+        <input type="text" placeholder="Search tasks..." disabled>
+      </div>
+
+      <div class="mockup-section-label critical">Critical</div>
+      <div class="mockup-task">
+        <div class="mockup-task-title">TheRealSleep - Website returning 503</div>
+        <div class="mockup-task-meta">
+          <span class="mockup-tag monitoring">Monitoring</span>
+          <span>12 min ago</span>
+        </div>
+      </div>
+
+      <div class="mockup-section-label high">High</div>
+      <div class="mockup-task">
+        <div class="mockup-task-title">Stone & Tile - Budget auto-fix review</div>
+        <div class="mockup-task-meta">
+          <span class="mockup-tag monitoring">Monitoring</span>
+          <span>6 hours ago</span>
+        </div>
+      </div>
+      <div class="mockup-task">
+        <div class="mockup-task-title">ExclusiveMatchmaking - Invoice 15 days overdue</div>
+        <div class="mockup-task-meta">
+          <span class="mockup-tag admin">Admin</span>
+          <span>1 day ago</span>
+        </div>
+      </div>
+
+      <div class="mockup-section-label normal">Normal</div>
+      <div class="mockup-task active">
+        <div class="mockup-task-title">Nzymes - Ruthy asking about CPA</div>
+        <div class="mockup-task-meta">
+          <span class="mockup-tag comm">Comm</span>
+          <span>2 hours ago</span>
+        </div>
+      </div>
+      <div class="mockup-task">
+        <div class="mockup-task-title">Stone & Tile - Onboarding: creative approval</div>
+        <div class="mockup-task-meta">
+          <span class="mockup-tag setup">Setup</span>
+          <span>3 hours ago &middot; Reileigh</span>
+        </div>
+      </div>
+      <div class="mockup-task">
+        <div class="mockup-task-title">ExclusiveMatchmaking - Blocked: ad account access</div>
+        <div class="mockup-task-meta">
+          <span class="mockup-tag setup">Setup</span>
+          <span>5 days ago</span>
+        </div>
+      </div>
+      <div class="mockup-task">
+        <div class="mockup-task-title">Weekly sync - 4 action items to review</div>
+        <div class="mockup-task-meta">
+          <span class="mockup-tag comm">Comm</span>
+          <span>4 hours ago</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="mockup-main">
+      <div class="mockup-main-header">
+        <h3>Nzymes - Ruthy asking about CPA</h3>
+        <p>Communication &middot; Normal Priority &middot; Created 2 hours ago</p>
+      </div>
+
+      <div class="mockup-message system">
+        <div class="mockup-message-author ai">System - Preprocessing</div>
+        <div class="mockup-tool-card">
+          <div class="mockup-tool-dot success"></div>
+          <span>Loaded Nzymes timeline (last 30 days, 24 events)</span>
+        </div>
+        <div class="mockup-tool-card">
+          <div class="mockup-tool-dot success"></div>
+          <span>Queried Monitoring: Google Ads CPA $28.42 (down 17% WoW), Facebook CPA $31.80 (stable)</span>
+        </div>
+        <div class="mockup-tool-card">
+          <div class="mockup-tool-dot success"></div>
+          <span>Queried Admin: No billing issues. Invoice paid on time.</span>
+        </div>
+      </div>
+
+      <div class="mockup-message system">
+        <div class="mockup-message-author ai">AI</div>
+        <p style="margin:0 0 8px;">Ruthy sent a WhatsApp message at 2:15 PM: "Hey - can you pull our CPA numbers for March?"</p>
+        <p style="margin:0 0 8px;">Here's what I found: Google Ads CPA is $28.42 this week, down 16.7% from $34.10 last week. The improvement is from the negative keyword cleanup on March 28 (12 keywords added). Facebook CPA is $31.80, stable.</p>
+        <p style="margin:0 0 8px;"><strong>Draft reply:</strong></p>
+        <p style="margin:0; padding:8px 12px; background:var(--surface2); border-radius:6px;">Hi Ruthy! Here are your March CPA numbers: Google Ads came in at $28.42 this week - that's a 17% improvement over last week, driven by the keyword cleanup we did. Facebook is holding steady at $31.80. Overall trend is heading in the right direction. Want me to put together a detailed March report, or is this enough?</p>
+      </div>
+
+      <div class="mockup-message user">
+        <div class="mockup-message-author you">You</div>
+        <p style="margin:0;">Looks good, send it.</p>
+      </div>
+
+      <div class="mockup-message system">
+        <div class="mockup-message-author ai">AI</div>
+        <div class="mockup-tool-card">
+          <div class="mockup-tool-dot success"></div>
+          <span>WhatsApp message sent to Ruthy (+1-555-0142)</span>
+        </div>
+        <p style="margin:8px 0 0;">Sent. Logged to Nzymes timeline. Marking this task as complete.</p>
+      </div>
+
+      <div class="mockup-input-row">
+        <input type="text" placeholder="Type a message..." disabled>
+        <button disabled>Send</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ================================ -->
+<!-- WORKING TASKS -->
+<!-- ================================ -->
+<h2>Working Tasks</h2>
+
+<p>When you open a task from the sidebar, the main area becomes a conversation thread. But it's not an empty chat - the AI has already done work before you arrived.</p>
+
+<h3>Preprocessing</h3>
+
+<p>At the top of every task thread, the preprocessing results are shown. These are the cross-agent queries, timeline lookups, and data pulls that happened when the task was created. They're displayed as collapsible tool execution cards - green dot for success, red dot for failure.</p>
+
+<p>You don't have to read them. They're context for the AI's draft. But if you want to verify where the information came from - "how does the AI know about the conversion drop?" - the preprocessing cards show exactly which queries ran and what they returned.</p>
+
+<h3>Tool Execution Cards</h3>
+
+<p>When the AI takes an action during your conversation - sends an email, queries an ad platform, checks a website - the action appears as a tool execution card inline in the thread. Each card shows:</p>
+
+<ul>
+  <li><strong>What tool was called</strong> - "Gmail: Send Email" or "Google Ads: Get Campaign Performance"</li>
+  <li><strong>Status</strong> - green dot (success) or red dot (failure)</li>
+  <li><strong>Summary</strong> - one-line result ("Email sent to ruthy@nzymes.com" or "CPA: $28.42, Conversions: 38")</li>
+  <li><strong>Details</strong> - collapsible section with full request/response data for debugging</li>
+</ul>
+
+<p>Failed tool calls show the error and offer a retry button. If the Gmail API is down, you see: red dot, "Gmail: Send Email - Failed (503 Service Unavailable)", and a retry button.</p>
+
+<h3>Communication Task Behavior</h3>
+
+<p>Communication tasks (email replies, follow-ups, client messages) have a specific behavior: when you approve and send the message, the task is marked as Done, but the conversation panel stays open. This lets you continue the conversation if the client replies quickly, or if you want to add notes to the timeline without opening a new task.</p>
+
+<!-- ================================ -->
+<!-- AD-HOC QUERIES -->
+<!-- ================================ -->
+<h2>Ad-Hoc Queries</h2>
+
+<p>Not everything is a task. Sometimes you just want to ask the system a question: "What was Nzymes' CPA last month?" or "How many active campaigns does Stone & Tile have?" These are ad-hoc queries.</p>
+
+<p>The interface offers two creation modes:</p>
+
+<ul>
+  <li><strong>New Task</strong> - creates a persistent task in the sidebar. Has preprocessing, appears in the task list, logged to the timeline. Use this for work that needs to be tracked.</li>
+  <li><strong>Quick Query</strong> - opens an ephemeral conversation. No preprocessing, doesn't appear in the sidebar, not logged to the timeline (unless it results in a mutation). Use this for quick questions where you don't need a paper trail.</li>
+</ul>
+
+<p>Quick queries are ephemeral by default, but if the conversation leads to an actual change - you ask about CPA and then say "adjust the budget" - the system promotes it to a full task. The mutation is logged to the timeline, and the conversation is preserved. You never lose work because you started in the wrong mode.</p>
+
+<div class="example">
+  <div class="example-label">Example: Quick Query Promotes to Task</div>
+  <p style="margin-bottom:8px;">You open a Quick Query and type: "What's ExclusiveMatchmaking's Google Ads CPA trending?"</p>
+  <p style="margin-bottom:8px;">The AI pulls the data: "$67 this week, down from $82 last month. Trending well."</p>
+  <p style="margin-bottom:8px;">You follow up: "Great. Increase their daily budget by 20% on the Search - Brand campaign."</p>
+  <p style="margin:0;">That's a mutation. The system promotes the query to a task: "ExclusiveMatchmaking - Budget increase on Search - Brand." The budget change is logged to ExclusiveMatchmaking's timeline. The AI executes the change (after your confirmation) and the task appears in the sidebar for audit purposes.</p>
+</div>
+
+<!-- ================================ -->
+<!-- MOBILE -->
+<!-- ================================ -->
+<h2>Mobile</h2>
+
+<p>V1 is desktop-first. The interface is designed for a full-size screen with a sidebar and conversation area side by side. That said, it's responsive enough for basic mobile triage.</p>
+
+<p>On mobile, the sidebar collapses to a full-screen task list. Tapping a task opens the conversation in full screen. You can review tasks, approve messages, and mark things done from your phone. You can't do deep work - no complex ad adjustments or multi-step workflows - but you can keep things moving when you're away from your desk.</p>
+
+<p>If TheRealSleep's website goes down at 9 PM and you get the CRITICAL notification, you can open the app on your phone, see the issue, approve the client message, and handle it in 30 seconds.</p>
+
+<!-- ================================ -->
+<!-- NOTIFICATION PREFERENCES -->
+<!-- ================================ -->
+<h2>Notification Preferences</h2>
+
+<p>The system is not a notification cannon. By default, only CRITICAL priority tasks push a notification to your device. Everything else waits for you to open the app.</p>
+
+<table>
+  <tr>
+    <th>Setting</th>
+    <th>Default</th>
+    <th>Options</th>
+  </tr>
+  <tr>
+    <td><strong>Push notifications</strong></td>
+    <td>CRITICAL only</td>
+    <td>Off, Critical Only, Critical + High, All (not recommended)</td>
+  </tr>
+  <tr>
+    <td><strong>Quiet hours</strong></td>
+    <td>10 PM - 7 AM</td>
+    <td>Configurable. During quiet hours, even CRITICAL notifications are silenced unless the issue has been active for 30+ minutes.</td>
+  </tr>
+  <tr>
+    <td><strong>Notification sensitivity</strong></td>
+    <td>Normal</td>
+    <td>Low (only site-down and billing emergencies push), Normal (all CRITICAL pushes), High (CRITICAL + HIGH push). Adjustable per client.</td>
+  </tr>
+</table>
+
+<div class="example">
+  <div class="example-label">Example: Quiet Hours</div>
+  <p style="margin:0;">It's 11 PM. TheRealSleep's website goes down. The system detects it, creates a CRITICAL task, but checks quiet hours - it's on. The notification is held. At 11:30 PM (30 minutes of sustained downtime), the system overrides quiet hours and pushes the notification. A 2-minute blip at 11 PM doesn't wake you. A sustained outage does.</p>
+</div>
+
+<!-- ================================ -->
+<!-- ERROR HANDLING -->
+<!-- ================================ -->
+<hr>
+
+<h2>Error Handling</h2>
+
+<p>Things break. APIs go down, AI models hallucinate, auto-fixes backfire, deduplication makes a bad call. The system's philosophy on errors is simple: <strong>fail visibly, never silently.</strong> Every failure surfaces to you with enough context to understand what happened and what to do about it.</p>
+
+<table>
+  <tr>
+    <th>Error Type</th>
+    <th>Example</th>
+    <th>System Response</th>
+  </tr>
+  <tr>
+    <td><strong>API down</strong></td>
+    <td>Google Ads API returns 503 for 15 minutes</td>
+    <td>Monitoring tasks for Google Ads clients are paused. A NORMAL priority task is created: "Google Ads API unavailable since 2:15 PM. Monitoring paused for affected clients. Will resume automatically when API recovers." Existing tasks show tool cards with red dots and "API unavailable" messages. No false alerts are generated from stale data.</td>
+  </tr>
+  <tr>
+    <td><strong>Auto-fix fails</strong></td>
+    <td>Budget reduction API call rejected (insufficient permissions)</td>
+    <td>The auto-fix task is created as HIGH priority instead of the usual "review" task. The tool card shows the failure. The AI explains what it tried to do, why it failed, and suggests a manual fix: "Tried to reduce Stone & Tile daily budget from $85 to $62 but the API returned a permission error. You may need to make this change directly in Google Ads."</td>
+  </tr>
+  <tr>
+    <td><strong>AI bad output</strong></td>
+    <td>The AI drafts a client email with obviously wrong numbers</td>
+    <td>This is caught by the human-in-the-loop. Every client-facing message requires your approval. If the numbers look wrong, you edit them or ask the AI to re-pull the data. The AI always cites its sources (tool execution cards), so you can verify where the numbers came from and spot the discrepancy.</td>
+  </tr>
+  <tr>
+    <td><strong>System downtime</strong></td>
+    <td>The application itself is unavailable for 2 hours</td>
+    <td>On recovery, the system runs a catch-up sweep: processes all data that arrived during downtime, backdates timeline entries to their actual occurrence time, and creates tasks that should have been created during the outage. Tasks created from the backlog appear in the sidebar as usual.</td>
+  </tr>
+  <tr>
+    <td><strong>Wrong dedup merge</strong></td>
+    <td>Two genuinely different emails are incorrectly merged as duplicates</td>
+    <td>The user can split incorrectly merged tasks. The system logs the correction, creates the separate tasks, and re-runs preprocessing on each one. A correction entry is appended to the timeline noting the dedup error. Future dedup rules are refined based on the false positive.</td>
+  </tr>
+  <tr>
+    <td><strong>TrashMan false positive</strong></td>
+    <td>A legitimate client email is flagged as junk and filtered out</td>
+    <td>TrashMan-flagged items are quarantined, not deleted. A periodic review task surfaces quarantined items for human review ("3 items in quarantine this week - review?"). If a false positive is found, the email is restored, a task is created, and the TrashMan ruleset is updated to prevent recurrence.</td>
+  </tr>
+  <tr>
+    <td><strong>Stale context</strong></td>
+    <td>Agent makes a decision based on timeline data that's 6 hours old</td>
+    <td>Every piece of context shown in a task includes a freshness timestamp. If data is older than expected, the AI notes it: "Note: Google Ads data is 6 hours old (last pull at 8:00 AM). Conversion numbers may not reflect the current state." The user can trigger a refresh to get current data.</td>
+  </tr>
+  <tr>
+    <td><strong>Cross-agent query failure</strong></td>
+    <td>Communication queries Monitoring but Monitoring times out</td>
+    <td>The task is created without the Monitoring context. The preprocessing shows a red-dot tool card: "Monitoring query failed (timeout). Campaign performance data unavailable at time of processing." The AI proceeds with what it has and tells you what's missing. You can re-run preprocessing to try again.</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <div class="callout-label">Error Philosophy</div>
+  The system should never fail silently. If something goes wrong - an API call, an auto-fix, a cross-agent query, a dedup decision - the user should know about it. Not in an overwhelming way (a wall of error alerts), but in a contextual way: when you're working a task and something failed during its processing, you see it right there in the tool cards. When something system-wide fails, you see it in the daily digest or as its own task. The goal is: you should never be surprised by something the system didn't tell you about.
+</div>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="10-cross-agent.html">&larr; 10. Cross-Agent Intelligence</a>
+  </div>
+  <div></div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

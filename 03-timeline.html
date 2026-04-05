@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>03. The Timeline - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html" class="current">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>The Timeline</h1>
+<p class="page-subtitle">The shared memory of the system. Every agent reads it before acting. Every agent writes to it after acting. This is how the system knows what's going on.</p>
+
+<!-- ================================ -->
+<!-- THE CONCEPT -->
+<!-- ================================ -->
+<h2>Why the Timeline Exists</h2>
+
+<p>Without shared memory, every agent starts cold. The Communication agent reads Ruthy's email but doesn't know that Monitoring just flagged a conversion drop on Nzymes' account. The Reporting agent drafts a cheerful weekly update without knowing that Admin flagged an overdue invoice an hour ago. Each agent knows its own piece but is blind to everything else.</p>
+
+<p>The timeline solves this. It's the one place where everything that happens with a client is recorded. Every agent reads it for context. Every agent writes to it after acting. The result: no agent operates in a silo, because they all share the same memory.</p>
+
+<div class="callout">
+  <div class="callout-label">Core Idea</div>
+  The timeline is to the agents what institutional memory is to a team. When a new team member joins, they can read the history and understand what's going on. When an agent needs to act on something, it reads the timeline and understands the full picture - not just its own domain's view.
+</div>
+
+<!-- ================================ -->
+<!-- THE GUARANTEES -->
+<!-- ================================ -->
+<h2>The Guarantees</h2>
+
+<p>These are the properties that never change, regardless of how many agents, data sources, or clients the system has:</p>
+
+<table>
+  <tr>
+    <th>Guarantee</th>
+    <th>What It Means</th>
+    <th>Why It Matters</th>
+  </tr>
+  <tr>
+    <td><strong>One per client</strong></td>
+    <td>Each client (company) has exactly one timeline. Multiple contacts at the same company share the same timeline, with attribution on each entry.</td>
+    <td>You never have to wonder "which timeline has this?" There's only one place to look.</td>
+  </tr>
+  <tr>
+    <td><strong>Append-only</strong></td>
+    <td>Entries are never edited or deleted. New information is added at the end. Corrections are new entries that reference and supersede the original.</td>
+    <td>The timeline is a permanent, auditable record. You can always see what happened and when. Nothing gets quietly rewritten.</td>
+  </tr>
+  <tr>
+    <td><strong>Chronological</strong></td>
+    <td>Entries are ordered by time. Most recent at the bottom (or top, depending on the view).</td>
+    <td>Reading the timeline tells a story. You can follow the narrative of a client relationship from beginning to now.</td>
+  </tr>
+  <tr>
+    <td><strong>Cross-domain</strong></td>
+    <td>Every domain writes to the same timeline. Communication, Monitoring, Actions, Reporting, Admin - all in one stream.</td>
+    <td>An agent can see the full picture, not just its own domain's slice. The Reporting agent sees monitoring alerts alongside client emails alongside billing events.</td>
+  </tr>
+  <tr>
+    <td><strong>Attributed</strong></td>
+    <td>Every entry records who or what created it - which agent, which team member, which domain.</td>
+    <td>You can always trace an action back to its source. "Eddie sent this email." "The monitoring agent made this change." "Will approved this report."</td>
+  </tr>
+  <tr>
+    <td><strong>Linked to source</strong></td>
+    <td>Every entry has a link back to the original - the email thread, the meeting recording at the timestamp, the ad platform change log, the invoice in Stripe.</td>
+    <td>The timeline entry is a summary. One click takes you to the full original. You never have to go hunting for context.</td>
+  </tr>
+</table>
+
+<!-- ================================ -->
+<!-- WHAT GOES IN -->
+<!-- ================================ -->
+<h2>What Gets Recorded</h2>
+
+<p>Every entry has the same structure: <strong>when</strong> it happened, <strong>what</strong> happened (the event type), <strong>who</strong> did it (attribution), a <strong>description</strong> in plain language, and a <strong>link back to the source</strong> - the original email thread, the meeting recording at the relevant timestamp, the ad platform change log, the invoice in Stripe. The timeline entry is a summary, but one click takes you to the full original.</p>
+
+<p>The event types grow over time as the system adds new capabilities. Today's list is a starting point - not a ceiling. What matters is the consistency: every event follows the same structure, so agents and queries work the same way regardless of the event type.</p>
+
+<div class="example">
+  <div class="example-label">Example: One Week in Nzymes' Timeline</div>
+  <table>
+    <tr><th style="width:130px">When</th><th style="width:90px">Who</th><th>What Happened</th><th style="width:100px">Source</th></tr>
+    <tr><td>Apr 3, 4:12 PM</td><td>Ruthy</td><td>Email received: "Can you pull our CPA numbers for March?"</td><td><a href="#" style="color:var(--accent)">View email</a></td></tr>
+    <tr><td>Apr 3, 8:45 AM</td><td>Eddie</td><td>Email sent (from Gmail): SEO thread update to Ruthy</td><td><a href="#" style="color:var(--accent)">View thread</a></td></tr>
+    <tr><td>Apr 2, 2:00 PM</td><td>Monitoring</td><td>Alert: Facebook frequency hit 2.8 on Retargeting (approaching 3.0 threshold)</td><td><a href="#" style="color:var(--accent)">View in Meta</a></td></tr>
+    <tr><td>Apr 1, 10:30 AM</td><td>Meeting Agent</td><td>Summary: Weekly sync - discussed Q2 budget increase, Ruthy wants video ads</td><td><a href="#" style="color:var(--accent)">Recording @ 0:00</a></td></tr>
+    <tr><td>Apr 1, 10:30 AM</td><td>Will</td><td>Approved 3 meeting action items</td><td><a href="#" style="color:var(--accent)">View task</a></td></tr>
+    <tr><td>Mar 31, 9:00 AM</td><td>Reporting</td><td>Weekly performance report sent to Ruthy</td><td><a href="#" style="color:var(--accent)">View report</a></td></tr>
+    <tr><td>Mar 29, 3:00 PM</td><td>Stripe</td><td>Invoice #1234 paid - $3,500</td><td><a href="#" style="color:var(--accent)">View in Stripe</a></td></tr>
+    <tr><td>Mar 28, 6:00 AM</td><td>Monitoring</td><td>Auto-fix: added 4 negative keywords from search term review</td><td><a href="#" style="color:var(--accent)">View changes</a></td></tr>
+  </table>
+</div>
+
+<p>Notice: the timeline mixes domains seamlessly. Emails next to monitoring actions next to billing events. That's the point. A single chronological view of everything.</p>
+
+<!-- ================================ -->
+<!-- HOW AGENTS READ IT -->
+<!-- ================================ -->
+<h2>How Agents Read the Timeline</h2>
+
+<p>A client who's been active for two years could have thousands of timeline entries. An agent processing a single email doesn't need all of them. The system provides <strong>bounded reads</strong> - each agent reads a window of relevant history, not the full log.</p>
+
+<p>The principle: <strong>read enough to have context, not so much that you drown in it.</strong></p>
+
+<table>
+  <tr>
+    <th>Agent Type</th>
+    <th>Default Window</th>
+    <th>Why This Window</th>
+  </tr>
+  <tr>
+    <td><strong>Communication</strong></td>
+    <td>Last 30 days of communications + active tasks</td>
+    <td>Needs recent conversation context to draft relevant replies</td>
+  </tr>
+  <tr>
+    <td><strong>Monitoring</strong></td>
+    <td>Last 7 days of changes + recent monitoring actions</td>
+    <td>Needs to know if a recent change explains an anomaly</td>
+  </tr>
+  <tr>
+    <td><strong>Reporting</strong></td>
+    <td>Last 90 days</td>
+    <td>Needs the broader arc for periodic summaries</td>
+  </tr>
+  <tr>
+    <td><strong>Task thread (on demand)</strong></td>
+    <td>Loaded as the conversation requires</td>
+    <td>User might ask "what happened last quarter?" - agent pulls what's needed</td>
+  </tr>
+</table>
+
+<p>These windows are defaults. An agent can go deeper if the conversation demands it. But the default prevents an agent from burning context and cost on irrelevant history during routine processing.</p>
+
+<!-- ================================ -->
+<!-- HOW AGENTS WRITE -->
+<!-- ================================ -->
+<h2>How Agents Write to the Timeline</h2>
+
+<p>Every agent writes to the timeline after it acts. This is not optional - it's how the system maintains its shared memory. The rule is simple:</p>
+
+<div class="callout">
+  <div class="callout-label">Invariant</div>
+  The timeline records things that are <strong>meaningful to the client relationship</strong>. Not everything that passes through the system. A vendor newsletter that isn't relevant to any client doesn't get logged. A "thanks!" reply that adds nothing to the story doesn't get logged. TrashMan filters outright junk before anything sees it. The Communication agent makes the second-level judgment: is this worth recording in the client's history? If it wouldn't help an agent or a human understand what's going on with this client, it stays out of the timeline.
+</div>
+
+<p>Some entries are written automatically (a client email arrives, it's logged). Some are written as a consequence of agent action (monitoring auto-fixes a budget, the fix is logged). Some are written by the user (you approve a report, the approval is logged). But not everything makes it in - the Communication agent filters out messages that don't add meaningful context to the client relationship. A payment receipt confirmation, a "sounds good" reply, a vendor newsletter - these passed TrashMan (they're not junk) but they're not worth polluting the timeline with. The timeline should tell the story of the client relationship, not be a firehose of every email that wasn't spam.</p>
+
+<!-- ================================ -->
+<!-- CORRECTIONS -->
+<!-- ================================ -->
+<h2>Corrections, Not Edits</h2>
+
+<p>Because the timeline is append-only, you can't go back and change an entry. But agents and humans make mistakes. Wrong attribution, wrong data, misclassified events. The correction model:</p>
+
+<ol>
+  <li>The original entry stays exactly as it was recorded</li>
+  <li>A new <strong>correction entry</strong> is appended that references the original and provides the accurate information</li>
+  <li>Any agent reading the timeline sees the correction and uses the corrected data</li>
+</ol>
+
+<div class="example">
+  <div class="example-label">Example</div>
+  <p style="margin-bottom:8px;"><strong>Entry #4521 (original):</strong> "Budget adjusted from $85/day to $52/day on Search - General"</p>
+  <p style="margin:0;"><strong>Entry #4538 (correction):</strong> "Corrects #4521: budget was adjusted to $62/day, not $52/day"</p>
+</div>
+
+<p>This preserves the audit trail (you can see what was originally recorded) while ensuring agents act on accurate information. No silent rewrites. No lost history.</p>
+
+<!-- ================================ -->
+<!-- THE BIGGER PICTURE -->
+<!-- ================================ -->
+<h2>The Timeline as Foundation</h2>
+
+<p>Every other part of the system relies on the timeline:</p>
+
+<ul>
+  <li><strong>Communication agents</strong> read it to understand client context before responding</li>
+  <li><strong>Monitoring agents</strong> read it to check if a recent change explains an anomaly</li>
+  <li><strong>Reporting agents</strong> read it to generate accurate periodic updates - and check it before sending to avoid embarrassing mistakes</li>
+  <li><strong>Admin agents</strong> write billing events to it so other agents know the financial picture</li>
+  <li><strong>Task preprocessing</strong> pulls from it to give the user context when they open a task</li>
+  <li><strong>Cross-agent queries</strong> consult it as the source of truth about what's been happening</li>
+  <li><strong>The user</strong> can read it directly to prepare for a client call or understand a situation</li>
+</ul>
+
+<p>If the timeline is comprehensive and accurate, every agent is smarter. If the timeline has gaps, every agent has blind spots. That's why the ingestion layer and the "always log" principle matter so much - they ensure the timeline reflects reality.</p>
+
+<div class="callout">
+  <div class="callout-label">Future: Narrative Layer</div>
+  The raw timeline is comprehensive but dense. In the future, an AI-generated narrative layer will sit on top: "Here's where things stand with Nzymes in 30 seconds." A plain-English summary distilled from the event log. The raw log stays as the source of truth underneath. The narrative is a reading aid, not a replacement.
+</div>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="02-ingestion.html">&larr; 02. Ingestion</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="04-tasks.html">04. The Task System &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

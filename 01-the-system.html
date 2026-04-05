@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01. The System - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html" class="current">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>The System</h1>
+<p class="page-subtitle">What this is, what an agent is, and how the pieces connect.</p>
+
+<!-- ================================ -->
+<!-- WHAT THIS IS -->
+<!-- ================================ -->
+<h2>What This Is</h2>
+
+<p>One application that runs the entire agency. You open it in the morning, and everything that needs your attention is already there - client emails that need replies, ad campaigns that need fixing, invoices that are overdue, meetings that generated action items. All in one place, prioritized, with context already loaded.</p>
+
+<p>There are no separate tools. No switching between Gmail and Google Ads and Stripe and a project tracker. One interface, one task list, one AI that has access to everything.</p>
+
+<!-- ================================ -->
+<!-- WHAT AN AGENT IS -->
+<!-- ================================ -->
+<h2>What an Agent Is</h2>
+
+<p>When this spec says "agent," it means something specific: <strong>a Claude instance with a set of tools and a job.</strong></p>
+
+<p>Think of it like hiring a specialist. You give them access to the systems they need (Gmail API, Google Ads API, the client database, the timeline), you tell them what their job is (read incoming emails, decide what needs attention, create tasks), and you let them work. That's an agent.</p>
+
+<div class="diagram">
+  <div class="diagram-label">What an Agent Actually Is</div>
+  <div class="mermaid">
+flowchart LR
+    PROMPT["System Prompt<br/><em>Who you are,<br/>what your job is</em>"] --> CLAUDE["Claude Instance"]
+    TOOLS["Tools<br/><em>Gmail API, Ads API,<br/>Timeline, Task Queue</em>"] --> CLAUDE
+    CLAUDE --> ACTION["Output<br/><em>Create a task,<br/>log to timeline,<br/>send a response</em>"]
+    style PROMPT fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style CLAUDE fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style TOOLS fill:#1f2d3d,stroke:#2a3a4d,color:#c9d1db
+    style ACTION fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+  </div>
+</div>
+
+<p>An agent is not magic. It's Claude + tools + instructions. Different agents have different tools and different instructions, but the pattern is always the same: receive input, use tools to gather context or take action, produce output.</p>
+
+<div class="example">
+  <div class="example-label">Example: The Communication Agent</div>
+  <p style="margin-bottom:8px;">An email arrives from Ruthy at Nzymes asking about her CPA numbers.</p>
+  <p style="margin-bottom:8px;">The Communication Agent is a Claude instance with access to: Gmail (read the email), the Timeline (pull Nzymes' recent history), and the Task Queue (create a task). Its instructions say: categorize this message, check the client timeline for context, decide if this needs a task or just a log entry.</p>
+  <p style="margin:0;">It reads the email, pulls Nzymes' timeline, sees there's an active campaign, and creates a HIGH priority task: "Nzymes - Ruthy asking about CPA." By the time you see it in your sidebar, the context is already loaded.</p>
+</div>
+
+<!-- ================================ -->
+<!-- THE FIVE AGENTS -->
+<!-- ================================ -->
+<h2>Five Domains, Many Agents</h2>
+
+<p>The system is organized into five domains - areas of responsibility. Each domain has as many agents as it needs to get the job done. Communication alone might have three: TrashMan (filters junk), the Comm Agent (reads and categorizes), and the Meeting Agent (extracts action items from transcripts). Monitoring might have one agent per ad platform. The number of agents isn't fixed - it's whatever it takes.</p>
+
+<p>What matters is that every agent, regardless of which domain it belongs to, reads from and writes to the same timeline and task queue. That's how they stay coordinated.</p>
+
+
+<table>
+  <tr>
+    <th>Domain</th>
+    <th>Job</th>
+    <th>Tools Available</th>
+    <th>What Its Agents Produce</th>
+  </tr>
+  <tr>
+    <td><strong>Communication</strong></td>
+    <td>Process all inbound messages. Decide what needs attention.</td>
+    <td>Gmail API, SMS/WhatsApp webhooks, meeting transcripts, client timeline, task queue</td>
+    <td>Tasks for messages that need responses. Timeline entries for everything else.</td>
+  </tr>
+  <tr>
+    <td><strong>Monitoring</strong></td>
+    <td>Watch ad accounts, websites, and conversion tracking. Catch problems.</td>
+    <td>Google Ads API, Facebook Ads API, website health checks, client timeline, task queue</td>
+    <td>Auto-fixes for clear-cut issues. Ask-permission tasks for judgment calls.</td>
+  </tr>
+  <tr>
+    <td><strong>Setup</strong></td>
+    <td>Run onboarding workflows. Launch campaigns. Install tracking.</td>
+    <td>Ad platform APIs, tracking tools, website builders, client timeline, task queue</td>
+    <td>Workflow steps. Progress updates. Handoff to Monitoring when campaigns go live.</td>
+  </tr>
+  <tr>
+    <td><strong>Reporting</strong></td>
+    <td>Keep clients informed. Follow up on what they owe us.</td>
+    <td>Client timeline, ad performance data, email composition, task queue</td>
+    <td>Report drafts (you approve before send). Follow-up messages for overdue client deliverables.</td>
+  </tr>
+  <tr>
+    <td><strong>Admin</strong></td>
+    <td>Watch billing, payments, and contracts. Alert when something's off.</td>
+    <td>Billing system (Stripe), contract tracking, client timeline, task queue</td>
+    <td>Tasks when invoices are overdue or contracts are expiring. Alerts to Reporting to adjust tone.</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <div class="callout-label">Key Point</div>
+  Every agent - regardless of domain - reads from and writes to the same two systems: the <strong>client timeline</strong> (shared memory) and the <strong>task queue</strong> (shared work list). That's what keeps them coordinated. A Communication agent creates a task, and when you work that task, the AI in the thread can pull from Monitoring tools for ad data if you need it. The domains define what agents <em>watch</em>. The shared infrastructure means any agent can draw on anything in the system when it's time to act.
+</div>
+
+<!-- ================================ -->
+<!-- TWO PIECES OF INFRASTRUCTURE -->
+<!-- ================================ -->
+<h2>Two Pieces of Infrastructure</h2>
+
+<p>Before diving into what each agent does, you need to understand the two systems they all share. These are covered in detail on their own pages, but here's the concept:</p>
+
+<div class="card-row">
+  <div class="card" style="border-color: var(--accent);">
+    <div class="card-title">Client Timeline</div>
+    <div class="card-body">A chronological log of everything that has happened with a client. Every email, ad change, meeting, task, billing event. Agents read this before acting so they have context. They write to it after acting so nothing is lost. One timeline per client, permanent and append-only.</div>
+  </div>
+  <div class="card" style="border-color: var(--accent);">
+    <div class="card-title">Task Queue</div>
+    <div class="card-body">The single list of all work that needs doing. Every agent creates tasks here. Every task is a chat thread where you work with the AI. Tasks are prioritized (Critical, High, Normal, Low) and appear in your sidebar sorted by urgency. You pull work when you're ready.</div>
+  </div>
+</div>
+
+<p>These are the two arteries of the system. Every agent connects to both. The timeline is the memory. The task queue is the to-do list. Everything else is built on top of them.</p>
+
+<!-- ================================ -->
+<!-- HOW IT FEELS -->
+<!-- ================================ -->
+<h2>How It Feels to Use</h2>
+
+<p>You open the app. The sidebar has your tasks, sorted by urgency. A red item at the top: TheRealSleep's website is returning 503 errors. Below that, orange: Stone & Tile's budget was auto-fixed overnight, review it. Then normal items: Ruthy's email, a meeting with 4 action items to approve, an ExclusiveMatchmaking onboarding step that's blocked on assets.</p>
+
+<p>You click the TheRealSleep alert. The AI has already checked the site, confirmed it's still down, and drafted a message to the client letting them know you're on it. You approve the message, it sends, the task is done.</p>
+
+<p>You click Stone & Tile's budget fix. The AI shows you what happened: broad match keyword went wild, budget was 35% over pace, it reduced the daily cap and added negative keywords. You review, looks good, mark it done.</p>
+
+<p>You click Ruthy's email. The AI pulled Nzymes' timeline, loaded last month's performance data, and drafted a reply with the CPA numbers she asked about. You tweak one sentence, hit send.</p>
+
+<p>That's the system. One app, one sidebar, one pattern: open a task, work with the AI, move on.</p>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div></div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="02-ingestion.html">02. Ingestion &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

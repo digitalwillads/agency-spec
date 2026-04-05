@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>09. Reporting & Admin - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html" class="current">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>Reporting & Admin</h1>
+<p class="page-subtitle">Two domains that watch the business from different angles. Reporting keeps clients informed. Admin keeps the financials honest. Neither acts without you.</p>
+
+<!-- ================================ -->
+<!-- PART 1: REPORTING -->
+<!-- ================================ -->
+<h2 style="color:var(--accent);">Part 1: Reporting</h2>
+
+<p>The Reporting agent has two jobs, and they're equally important: keep clients informed with periodic performance updates, and follow up when clients owe you something - assets, access, approvals, payments. Most agencies are bad at both. Reports go out late (or not at all), and nobody follows up when a client ghosts on their deliverables. Reporting fixes that.</p>
+
+<!-- ================================ -->
+<!-- PERIODIC REPORTS -->
+<!-- ================================ -->
+<h2>Periodic Reports</h2>
+
+<p>Every client gets regular updates. The cadence is fully configurable per client - daily, weekly, biweekly, monthly, or any custom schedule. Some clients want a quick update almost every day about what's happening in their account and where projects stand. Others want a monthly summary and nothing more. The system adapts to whatever each client relationship needs.</p>
+
+<p>The cadence isn't just about frequency - it's about the <em>type</em> of communication. A daily-cadence client might get short progress notes ("installed your tracking pixel today, verification tomorrow"). A weekly client gets a full performance summary. A monthly client gets a comprehensive review with recommendations. The Reporting agent adjusts both frequency and depth to match the relationship.</p>
+
+<div class="callout">
+  <div class="callout-label">Key Principle</div>
+  Reporting cadence is a client relationship tool, not a bureaucratic schedule. Some clients want to feel involved daily. Some want to be left alone until there's something to show. The system should make both feel well-served.
+</div>
+
+<h3>How Reporting Works</h3>
+
+<p>Reporting is not just periodic emails on a schedule. It's ad hoc - driven by what's actually happening. You have meetings with clients all the time. Things change daily. The Reporting agent's job is to keep clients updated <strong>as things happen</strong>, not on a rigid calendar.</p>
+
+<p>When monitoring auto-fixes something, the Reporting agent can proactively let the client know. When a project milestone is hit, the client hears about it. When there's a meeting coming up, the agent prepares a brief with recent activity. The periodic report is one tool in the box, not the whole job.</p>
+
+<p>What the agent draws from when communicating with clients:</p>
+
+<ul>
+  <li><strong>The client timeline</strong> - everything that's happened recently, across all domains</li>
+  <li><strong>Current performance data</strong> - pulled live from the ad platforms</li>
+  <li><strong>Active tasks and project progress</strong> - what's being worked on, what's blocked</li>
+  <li><strong>Outstanding client obligations</strong> - anything the client needs to deliver</li>
+</ul>
+
+<p>The Reporting agent uses this context to generate whatever communication is appropriate - a quick progress note, a meeting prep brief, a detailed performance review, or a follow-up reminder. The format and depth depend on the situation and the client relationship, not a fixed template.</p>
+
+<div class="example">
+  <div class="example-label">Example: Ad Hoc Reporting in Practice</div>
+  <p style="margin-bottom:8px;"><strong>Monday 6 AM:</strong> Monitoring auto-fixed Stone & Tile's budget overnight. Reporting proactively drafts a quick note: "Heads up - we caught a budget pacing issue overnight and adjusted it. Details in your next call." You approve, it sends.</p>
+  <p style="margin-bottom:8px;"><strong>Tuesday 1 PM:</strong> You have a call with Ruthy at Nzymes in 30 minutes. Reporting agent prepares a brief from the timeline: recent performance, what the team did this week, the Q2 budget discussion from last week's sync, and the fact that you're still waiting on brand photography.</p>
+  <p style="margin:0;"><strong>Thursday 10 AM:</strong> ExclusiveMatchmaking's onboarding hit a milestone - conversion tracking is installed and verified. Reporting drafts a progress update: "Great news - tracking is live and we've confirmed it's working. Next step is launching the first campaign set, which we're targeting for Monday."</p>
+</div>
+
+<!-- ================================ -->
+<!-- CLIENT FOLLOW-UPS -->
+<!-- ================================ -->
+<h2>Client Follow-Ups</h2>
+
+<p>The second job of Reporting is less glamorous but equally important: following up when clients owe you things. Brand assets, ad account access, creative approvals, feedback on proposals, payment for overdue invoices. Every agency has clients who go quiet when they need to do something. Reporting handles the follow-up automatically.</p>
+
+<h3>Follow-Up Approach</h3>
+
+<p>When something is waiting on a client, the Reporting agent follows up. The cadence, tone, and number of follow-ups are configurable per client and per situation - some things are urgent (we can't launch without ad account access), some aren't (nice-to-have brand photos). The agent escalates tone over time: start friendly, get more direct, and eventually flag it internally to you if the client isn't responding.</p>
+
+<p>The key constraint: the system should never harass a client. There's always a cap on automated follow-ups before it escalates to a human. After that, it's your call whether to push harder or let it go.</p>
+
+<div class="callout">
+  <div class="callout-label">Key Rule</div>
+  All client-facing messages - reports, follow-ups, anything - require your approval before sending. The Reporting agent drafts them, presents them to you as a task, and waits for you to review, edit, and hit send. Nothing goes out automatically.
+</div>
+
+<!-- ================================ -->
+<!-- PRE-FLIGHT CHECKS -->
+<!-- ================================ -->
+<h2>Pre-Flight Checks</h2>
+
+<p>Before Reporting sends any client-facing communication - a report, a follow-up, anything - it runs a pre-flight check. This is a cross-domain query that ensures the message won't land badly given the current state of the client relationship.</p>
+
+<p>The pre-flight check looks for:</p>
+
+<table>
+  <tr>
+    <th>Check</th>
+    <th>What It Looks For</th>
+    <th>What Happens If Positive</th>
+  </tr>
+  <tr>
+    <td><strong>Open Critical Tasks</strong></td>
+    <td>Any CRITICAL priority tasks for this client (site down, tracking broken, etc.)</td>
+    <td>Report is held. You're notified: "Holding ExclusiveMatchmaking's weekly report - their site is currently returning 503 errors."</td>
+  </tr>
+  <tr>
+    <td><strong>Billing Issues</strong></td>
+    <td>Overdue invoices, failed payments, billing disputes</td>
+    <td>Report tone is modified - removes cheerful language, adds a note about the outstanding balance. Or the report is deferred entirely if the billing situation is severe.</td>
+  </tr>
+  <tr>
+    <td><strong>Monitoring Problems</strong></td>
+    <td>Active unresolved monitoring alerts (conversion drop, budget overspend)</td>
+    <td>Issues are included in the report with context, rather than swept under the rug. "You may notice a dip in conversions this week - we identified a tracking issue on Wednesday and resolved it by Thursday."</td>
+  </tr>
+  <tr>
+    <td><strong>Recent Angry Communication</strong></td>
+    <td>Negative sentiment in recent client messages (within last 48 hours)</td>
+    <td>Report is flagged for extra attention. You get a note: "Heads up - Ruthy sent a frustrated email yesterday about ad spend. Review this report carefully before sending."</td>
+  </tr>
+</table>
+
+<div class="example">
+  <div class="example-label">Example: Pre-Flight Catches a Problem</div>
+  <p style="margin-bottom:8px;">It's Monday morning. Reporting is about to generate ExclusiveMatchmaking's weekly report. Pre-flight check runs:</p>
+  <p style="margin-bottom:8px;">1. Open critical tasks? No.</p>
+  <p style="margin-bottom:8px;">2. Billing issues? <strong>Yes - Invoice #1289 is 15 days overdue.</strong></p>
+  <p style="margin-bottom:8px;">3. Monitoring problems? No.</p>
+  <p style="margin-bottom:8px;">4. Recent angry comms? No.</p>
+  <p style="margin:0;">Result: The report is generated but with modified tone. Instead of the usual upbeat opener ("Great week for your campaigns!"), it's neutral and professional. The outstanding invoice is mentioned at the bottom. You get a note: "ExclusiveMatchmaking report modified due to 15-day overdue invoice. Review before sending."</p>
+</div>
+
+<h3>Report Holds During Critical Issues</h3>
+
+<p>If a client has an active critical issue - their website is down, their tracking is completely broken, there's been a major billing dispute - Reporting holds all outbound communication until the issue is resolved or you explicitly approve sending. The logic is simple: don't send a cheerful performance update to a client whose site has been down for three hours. Wait until the fire is out, then send the report with the full context of what happened and how it was resolved.</p>
+
+<!-- ================================ -->
+<!-- PART 2: ADMIN -->
+<!-- ================================ -->
+<hr>
+
+<h2 style="color:var(--accent);">Part 2: Admin</h2>
+
+<p>Admin is the financial watchdog. It doesn't talk to clients. It doesn't send reports. It doesn't make changes to campaigns. It watches the money, and when something is off, it tells you and tells Reporting. That's it.</p>
+
+<div class="callout">
+  <div class="callout-label">Core Principle</div>
+  Admin NEVER acts. It never contacts clients, never adjusts billing, never modifies contracts. It observes, it alerts, and it creates tasks. All action is taken by you (for decisions) or by Reporting (for client communication, with your approval). Admin is the alarm system, not the fire department.
+</div>
+
+<!-- ================================ -->
+<!-- WHAT ADMIN WATCHES -->
+<!-- ================================ -->
+<h2>What Admin Watches</h2>
+
+<p>Admin monitors the business operations layer - anything related to money, contracts, and financial obligations. The specific rules, thresholds, and escalation timing are all configurable. What doesn't change is the pattern: Admin detects a condition, creates a task, and notifies Reporting so client-facing communication stays informed.</p>
+
+<p>The categories Admin watches:</p>
+
+<ul>
+  <li><strong>Invoices and payments</strong> - overdue invoices, failed payments, payment patterns. Escalation timing and urgency are configurable per client.</li>
+  <li><strong>Contracts</strong> - expiration dates, renewal windows, auto-renewal vs. manual renewal. How far in advance to surface these is configurable.</li>
+  <li><strong>Rate discrepancies</strong> - mismatches between what was agreed (in the contract or in a meeting captured on the timeline) and what's actually being billed. The system can cross-reference the timeline with billing data to catch these.</li>
+</ul>
+
+<div class="callout">
+  <div class="callout-label">Design Principle</div>
+  Admin rules follow the same pattern as Monitoring rules: configurable conditions, configurable thresholds, configurable responses. The difference is what they watch - Monitoring watches ad platforms and websites, Admin watches the financial layer. Both create tasks and inform other domains when something needs attention.
+</div>
+
+<!-- ================================ -->
+<!-- HOW ADMIN SURFACES ISSUES -->
+<!-- ================================ -->
+<h2>How Admin Surfaces Issues</h2>
+
+<p>Admin has a simple two-step pattern for every issue it detects:</p>
+
+<div class="diagram">
+  <div class="diagram-label">Admin Issue Handling</div>
+  <div class="mermaid">
+flowchart LR
+    D["Admin Detects Issue"] --> T["Creates Task for Will"]
+    D --> R["Notifies Reporting"]
+    R --> A["Reporting Adjusts Tone<br/>or Follows Up"]
+    T --> W["Will Decides<br/>What to Do"]
+
+    style D fill:#1f2d3d,stroke:#e05252,color:#c9d1db
+    style T fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style R fill:#1f2d3d,stroke:#e6a731,color:#c9d1db
+    style A fill:#1f2d3d,stroke:#e6a731,color:#c9d1db
+    style W fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+  </div>
+</div>
+
+<ol>
+  <li><strong>Creates a task for you</strong> - with all the relevant data (invoice amounts, dates, what's been tried, timeline context). You see it in your sidebar, prioritized appropriately.</li>
+  <li><strong>Notifies Reporting</strong> - so Reporting can adjust its behavior. If there's an overdue invoice, Reporting modifies the tone of outgoing messages. If a contract is expiring, Reporting can weave in renewal language. If there's a rate discrepancy, Reporting holds any pricing-related communications until you've resolved it.</li>
+</ol>
+
+<p>Admin never takes action itself. It's the observer that makes sure the right people (you and Reporting) have the information they need to act.</p>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="08-workflows.html">&larr; 08. Workflows</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="10-cross-agent.html">10. Cross-Agent Intelligence &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

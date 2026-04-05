@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05. Communication - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html" class="current">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>Communication</h1>
+<p class="page-subtitle">How every inbound message gets processed, categorized, and turned into work - or filed away as context.</p>
+
+<!-- ================================ -->
+<!-- OVERVIEW -->
+<!-- ================================ -->
+<h2>The Communication Domain</h2>
+
+<p>The Communication domain handles every message that enters the system - email, SMS, WhatsApp, meeting transcripts. Its job is to answer three questions for each message: Who is this from? What does it need? Does it require action or is it just context?</p>
+
+<p>Most messages don't need action - and not everything deserves a spot in the client timeline either. A vendor newsletter, a payment receipt confirmation, a "thanks!" reply - these aren't junk (TrashMan let them through), but they don't add meaningful context to the client relationship. They pass through without creating tasks or timeline entries. The Communication domain's real value is making sure the messages that <em>do</em> need action become tasks with full context, and only the messages that genuinely matter get recorded in the timeline.</p>
+
+<p>Three agents work together in this domain:</p>
+
+<ul>
+  <li><strong>TrashMan</strong> - filters obvious junk before anything else processes it</li>
+  <li><strong>The Communication Agent</strong> - reads, categorizes, and decides what happens with each message</li>
+  <li><strong>The Meeting Agent</strong> - processes meeting recordings into summaries and action items</li>
+</ul>
+
+<!-- ================================ -->
+<!-- TRASHMAN -->
+<!-- ================================ -->
+<h2>TrashMan</h2>
+
+<p>TrashMan is the first agent to see every inbound message. Its job is simple: filter the junk so the Communication Agent doesn't waste time on it. But the filtering philosophy is conservative - when in doubt, let it through.</p>
+
+<h3>Filtering Approach</h3>
+
+<p>TrashMan uses two types of blacklists:</p>
+
+<ul>
+  <li><strong>Sender-level blacklist</strong> - specific email addresses or domains that are always junk. marketing@somevendor.com, noreply@randomplatform.com. If the sender is blacklisted, the message is filtered regardless of content.</li>
+  <li><strong>Subject-pattern blacklist</strong> - patterns in subject lines that indicate junk. "Your weekly digest," "Unsubscribe to stop receiving," promotional language patterns. These are regex-style patterns, not keyword matches.</li>
+</ul>
+
+<h3>Learning</h3>
+
+<p>TrashMan learns, but only through explicit approval. It never auto-learns from your behavior. Here's the flow:</p>
+
+<ul>
+  <li>A message gets through that you think is junk. You mark it as junk in the interface.</li>
+  <li>TrashMan proposes a filter rule: "Block all emails from marketing@vendorx.com" or "Block subject lines matching 'Weekly Platform Digest.'"</li>
+  <li>You approve or reject the proposed rule.</li>
+  <li>Only approved rules get added to the blacklists.</li>
+</ul>
+
+<p>This is intentional. Automated spam learning sounds great until it filters a client email because the subject line looked promotional. Conservative filtering means more junk gets through to the Communication Agent, but nothing important gets lost.</p>
+
+<h3>Context Awareness</h3>
+
+<p>TrashMan can query the system before deciding. If an email comes from an unknown sender, TrashMan can check: is this domain associated with any client? Is this person in any client's contact list? If yes, it passes the message through regardless of how spammy it looks.</p>
+
+<div class="example">
+  <div class="example-label">Example: Context Saves a Message</div>
+  <p style="margin:0;">An email arrives from "promotions@stonetile.com" with the subject "Special Q2 Offer - Exclusive Deal Inside." Looks like marketing spam. But TrashMan checks the system and sees that stonetile.com belongs to Stone & Tile Shoppe, an active client. It passes the message through. Turns out it's their marketing manager sharing a promotion they want to run ads for.</p>
+</div>
+
+<h3>Recovery Log</h3>
+
+<p>Every message TrashMan filters is logged to a recovery log - not the client timeline, but a separate filtration log. If something important gets filtered by mistake, you can find it there, recover it, and it gets processed normally. The recovery log is searchable and shows what rule caused each filtration.</p>
+
+<h3>Per-Inbox Scoping</h3>
+
+<p>Blacklists are scoped per inbox. A sender that's junk for Will's inbox might be a legitimate contact for Eddie's. TrashMan maintains separate filter rules for each team member's inbox. When a filter rule is approved, you specify which inbox(es) it applies to - or apply it globally.</p>
+
+<!-- ================================ -->
+<!-- COMMUNICATION AGENT DECISION LOGIC -->
+<!-- ================================ -->
+<h2>Communication Agent Decision Logic</h2>
+
+<p>After TrashMan passes a message through, the Communication Agent takes over. It follows a structured decision process for every message:</p>
+
+<div class="diagram">
+  <div class="diagram-label">Communication Agent Decision Flow</div>
+  <div class="mermaid">
+flowchart TD
+    MSG["Inbound Message"] --> ID["Identify Sender"]
+    ID --> KNOWN{"Known\nContact?"}
+    KNOWN -->|Yes| CAT["Categorize Message"]
+    KNOWN -->|No| TRIAGE["Manual Triage\n(unknown sender task)"]
+    CAT --> TL["Check Client Timeline"]
+    TL --> DECIDE{"Needs\nAction?"}
+    DECIDE -->|Yes| TASK["Create Task\nwith context"]
+    DECIDE -->|No| LOG["Log to Timeline\nas context"]
+    TRIAGE --> TASK
+    style MSG fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style ID fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style KNOWN fill:#1f2d3d,stroke:#e6a731,color:#c9d1db
+    style CAT fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style TL fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style DECIDE fill:#1f2d3d,stroke:#e6a731,color:#c9d1db
+    style TASK fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style LOG fill:#1f2d3d,stroke:#2a3a4d,color:#c9d1db
+    style TRIAGE fill:#1f2d3d,stroke:#e05252,color:#c9d1db
+  </div>
+</div>
+
+<h3>Step 1: Identify Sender</h3>
+
+<p>Match the sender to a known contact. The system checks email address, phone number, and WhatsApp ID against the contact database. If matched, the agent knows which client this belongs to and can load the right timeline.</p>
+
+<h3>Step 2: Categorize</h3>
+
+<p>What kind of message is this? The agent reads the content and classifies it:</p>
+
+<ul>
+  <li><strong>Question / request</strong> - the sender needs something. Information, a change, a deliverable.</li>
+  <li><strong>Response / reply</strong> - the sender is answering something we asked or continuing a thread.</li>
+  <li><strong>Informational</strong> - the sender is sharing information but not asking for anything. "FYI, we're running a sale next week."</li>
+  <li><strong>Acknowledgment</strong> - "Got it," "Thanks," "Sounds good." No action needed.</li>
+  <li><strong>Deliverable</strong> - the sender is providing something we asked for. Brand assets, content approvals, access credentials.</li>
+</ul>
+
+<h3>Step 3: Check Timeline</h3>
+
+<p>The agent reads the client's timeline (last 30 days of comms + active tasks) to understand the context. Is this a follow-up to an ongoing conversation? Is there already a task for this? Is there a blocked task waiting on exactly what this message provides?</p>
+
+<h3>Step 4: Decide</h3>
+
+<p>Based on the category and timeline context, the agent decides:</p>
+
+<ul>
+  <li><strong>Create a task</strong> - this message needs a response or action. The agent creates a task with full context and a draft response if applicable.</li>
+  <li><strong>Add to existing task</strong> - this message relates to an open task. Add it as new context in that task's thread.</li>
+  <li><strong>Unblock a task</strong> - this message provides something a Blocked task was waiting for. Move the task to InProgress and add this message.</li>
+  <li><strong>Log only</strong> - no action needed. Log to the timeline as context. "Thanks!" replies, FYI messages, acknowledgments.</li>
+</ul>
+
+<div class="example">
+  <div class="example-label">Example: The Full Flow</div>
+  <p style="margin-bottom:8px;">Ruthy from Nzymes emails: "Hey, can you pull our CPA numbers for March? Also, we're thinking about increasing budget for Q2."</p>
+  <ol style="margin:0;">
+    <li><strong>Identify</strong> - ruthy@nzymes.com matches Ruthy, contact at client Nzymes.</li>
+    <li><strong>Categorize</strong> - Question/request. She's asking for data and signaling a potential budget change.</li>
+    <li><strong>Timeline</strong> - Nzymes had a meeting last week discussing Q2 strategy. Eddie sent a follow-up. Weekly report was sent 3 days ago. No open tasks related to CPA or budget.</li>
+    <li><strong>Decide</strong> - Create a task. Priority: High (client is asking for something). Pre-load the CPA data, the meeting summary, and the last report. Draft a reply.</li>
+  </ol>
+</div>
+
+<!-- ================================ -->
+<!-- INBOUND BATCHING -->
+<!-- ================================ -->
+<h2>Inbound Message Batching</h2>
+
+<p>People don't always say everything in one message. Ruthy might send an email, then 2 minutes later send a follow-up: "Oh, and can you also check the Facebook frequency?" If the system processes each message independently, you get two tasks for what is really one conversation.</p>
+
+<p>The Communication Agent batches messages from the same sender within a 5-minute window. If Ruthy sends an email at 9:15 and another at 9:17, both are processed together as a single inbound event. The agent reads both messages, understands the full request, and creates one task that covers everything.</p>
+
+<p>The window resets with each new message. If Ruthy sends at 9:15, 9:17, and 9:21, all three are batched (9:17 resets the window, 9:21 is within 5 minutes of 9:17). But if Ruthy sends at 9:15 and then 9:45, those are two separate events.</p>
+
+<div class="callout">
+  <div class="callout-label">Cross-Channel Batching</div>
+  Batching works across channels. If Ruthy emails at 9:15 and then sends a WhatsApp at 9:17 saying "just sent you an email about CPA," both are batched together. The system recognizes it's the same person, same timeframe, same topic.
+</div>
+
+<!-- ================================ -->
+<!-- SENDER IDENTIFICATION -->
+<!-- ================================ -->
+<h2>Sender Identification</h2>
+
+<p>Every inbound message needs to be attributed to a contact and, through the contact, to a client. The system matches on:</p>
+
+<ul>
+  <li><strong>Email address</strong> - exact match against the contact database</li>
+  <li><strong>Phone number</strong> - normalized and matched (handles +1, country codes, formatting differences)</li>
+  <li><strong>WhatsApp ID</strong> - matched to the associated phone number or WhatsApp-specific identifier</li>
+</ul>
+
+<p>If the sender can't be matched to any known contact, the message becomes a manual triage task. The task title is: "Unknown sender - [brief summary]." You review it and either create a new contact, link it to an existing client, or mark it as junk (which teaches TrashMan).</p>
+
+<div class="example">
+  <div class="example-label">Example: Unknown Sender</div>
+  <p style="margin:0;">An email arrives from "jessica@newbrand.com" asking about advertising services. No match in the contact database. A task is created: "Unknown sender - jessica@newbrand.com asking about ad services." You open it, decide this is a potential new client, and create a contact record. Future messages from Jessica will be matched automatically.</p>
+</div>
+
+<!-- ================================ -->
+<!-- THREAD MATCHING -->
+<!-- ================================ -->
+<h2>Thread Matching</h2>
+
+<p>Messages belong to conversations, and the system needs to keep conversations together - both for context and for deduplication.</p>
+
+<h3>Email Threads</h3>
+
+<p>Email has built-in thread IDs (In-Reply-To and References headers). The system uses these to group email replies together. If Ruthy replies to your email from 3 days ago, the reply is associated with the same conversation thread, and if there's an open task for that thread, the reply is added to it.</p>
+
+<h3>SMS and WhatsApp Threads</h3>
+
+<p>SMS and WhatsApp don't have thread IDs. The system groups messages from the same sender within a rolling time window - messages that are part of the same back-and-forth are treated as one conversation. A new conversation starts when there's a significant gap in time (more than 4 hours of silence from both sides) or when the topic clearly shifts.</p>
+
+<h3>Topic Shift Detection</h3>
+
+<p>Sometimes a conversation genuinely changes topic mid-thread. Ruthy is discussing CPA numbers and then says "Oh by the way, we need to update the landing page copy too." The Communication Agent can detect topic shifts and decide whether the new topic should be its own task or is minor enough to stay in the current thread.</p>
+
+<p>The threshold is practical: if the new topic requires different action by a different person (or with different tools), it gets its own task. If it's closely related and can be handled in the same session, it stays.</p>
+
+<div class="example">
+  <div class="example-label">Example: Topic Shift</div>
+  <p style="margin-bottom:8px;">Ruthy emails about CPA numbers. At the bottom she adds: "Also, can you send me a copy of our contract? I need it for our accounting." The CPA question becomes the main task. The contract request becomes a separate Low priority task - it's a different action (Admin domain, not performance data) and can be handled independently.</p>
+  <p style="margin:0;">But if Ruthy had said: "And what was the spend breakdown between Search and Shopping?" - that's the same domain, same conversation, same task. No split needed.</p>
+</div>
+
+<!-- ================================ -->
+<!-- URGENCY DETECTION -->
+<!-- ================================ -->
+<h2>Urgency Detection</h2>
+
+<p>The Communication Agent assigns priority to each task it creates. Here's how it maps message signals to priority:</p>
+
+<table>
+  <tr>
+    <th>Priority</th>
+    <th>Criteria</th>
+    <th>Example</th>
+  </tr>
+  <tr>
+    <td><strong style="color: var(--red);">Critical</strong></td>
+    <td>Sender reports something is broken. "Our website is down." "Ads aren't showing." "We're getting an error." Words like urgent, emergency, broken, down, ASAP with context that confirms a real issue.</td>
+    <td>TheRealSleep emails: "Our checkout page is throwing errors - customers can't buy. Please fix ASAP."</td>
+  </tr>
+  <tr>
+    <td><strong style="color: var(--orange);">High</strong></td>
+    <td>Client asking a direct question that expects a response. Time-sensitive requests. Follow-ups on things already discussed. Second message about the same topic (they're waiting).</td>
+    <td>Ruthy emails asking for CPA data - she's waiting for numbers. Stone & Tile follows up on a proposal sent last week.</td>
+  </tr>
+  <tr>
+    <td><strong>Normal</strong></td>
+    <td>Standard requests with no urgency signal. FYI messages that need acknowledgment. Deliverables received that need processing.</td>
+    <td>ExclusiveMatchmaking sends brand assets you requested. A client shares a new promotion they want to run.</td>
+  </tr>
+  <tr>
+    <td><strong style="color: var(--text-dim);">Low</strong></td>
+    <td>Informational messages that need a response eventually but aren't time-sensitive. "When you get a chance" requests. Nice-to-have ideas the client shared.</td>
+    <td>A client mentions "at some point we should look into TikTok ads." A vendor offers a new tool demo.</td>
+  </tr>
+</table>
+
+<!-- ================================ -->
+<!-- EDGE CASES -->
+<!-- ================================ -->
+<h2>Edge Cases</h2>
+
+<h3>Auto-Replies</h3>
+
+<p>Out-of-office replies, delivery receipts, read receipts, and auto-responders are logged to the timeline but never create tasks and never trigger the full decision flow. The Communication Agent recognizes auto-reply patterns and handles them immediately: log to timeline, done.</p>
+
+<p>Out-of-office replies are particularly useful context. If you send Ruthy an email and get an OOO saying she's back on Monday, that's logged to Nzymes' timeline. When a follow-up task is created for Thursday, the AI knows Ruthy is out and suggests deferring until Monday.</p>
+
+<h3>Cross-Channel Deduplication</h3>
+
+<p>When Ruthy emails about CPA and then sends a WhatsApp saying "did you get my email about CPA?", these should not create two tasks. The 5-minute batching window catches close-together duplicates, but cross-channel messages might be further apart. The Communication Agent uses semantic matching - same client, same topic, within a reasonable window (up to 2 hours) - to merge these.</p>
+
+<h3>Team Email</h3>
+
+<p>Emails sent to or from team members (Eddie, Reileigh, Tristan, Isaac) are treated as context, not task triggers. When Eddie emails a client, it's logged to the client's timeline so you can see what's happening, but it doesn't create a task for you. The exception is when a team member explicitly escalates something - if Eddie forwards a client email to you with a note saying "need your input on this," that becomes a task.</p>
+
+<div class="example">
+  <div class="example-label">Example: Team Email as Context</div>
+  <p style="margin:0;">Eddie replies to Stone & Tile about their SEO progress from his phone at 8:45 AM. That email is captured, logged to Stone & Tile's timeline, and visible when you pull up their history. But it doesn't create a task for you. Later, when you're working a Stone & Tile task, the AI mentions: "Eddie sent an update about SEO yesterday - here's what he said." Full picture, no extra noise.</p>
+</div>
+
+<!-- ================================ -->
+<!-- MEETING PROCESSING -->
+<!-- ================================ -->
+<h2>Meeting Processing</h2>
+
+<p>Meetings are processed by the Meeting Agent after the recording and transcript are available. The output is always two things: a summary and action items.</p>
+
+<h3>Two Outputs</h3>
+
+<ul>
+  <li><strong>Meeting summary</strong> - a concise narrative of what was discussed, what was decided, and what was left open. This goes to the client timeline as a meeting_summary event. It's context, not a task.</li>
+  <li><strong>Action items</strong> - specific things that need to happen as a result of the meeting. Each action item becomes a draft task. Draft, not final - you review and approve them first.</li>
+</ul>
+
+<h3>Batch Review with Partial Approval</h3>
+
+<p>When a meeting generates action items, they're presented as a batch for review. You don't have to approve all or reject all. You can approve 3 out of 5, edit 1, and discard 1. Each approved action item becomes a task in the queue.</p>
+
+<div class="example">
+  <div class="example-label">Example: Meeting Action Items</div>
+  <p style="margin-bottom:8px;">You have a weekly sync with Nzymes. The Meeting Agent extracts 4 action items:</p>
+  <ol style="margin-bottom:8px;">
+    <li>"Send Ruthy the March performance summary" - you approve, becomes a Normal task.</li>
+    <li>"Research video ad options for Q2" - you approve and bump to High, becomes a task.</li>
+    <li>"Follow up on SEO keyword research" - you approve and assign to Eddie.</li>
+    <li>"Look into TikTok ads" - too vague, you discard it. You'll bring it up next meeting if it matters.</li>
+  </ol>
+  <p style="margin:0;">Three tasks created, one discarded. Each task has context from the meeting: the transcript excerpt where it was discussed, the full meeting summary, and relevant timeline history.</p>
+</div>
+
+<h3>Client Attribution</h3>
+
+<p>Not all meetings are single-client. Internal syncs, vendor conversations, and multi-client discussions happen. The Meeting Agent attributes action items to the right client based on context in the transcript. If a meeting covers both Nzymes and Stone & Tile, action items are split to the correct client timelines.</p>
+
+<p>For internal meetings with no client connection, action items are created as unattributed tasks (no client field) or attributed to the agency itself.</p>
+
+<h3>Quality Gate</h3>
+
+<p>Sometimes transcripts are bad - poor audio, crosstalk, incomplete recordings. The Meeting Agent evaluates transcript quality before extracting action items. If the transcript is too unreliable, it flags this: "Transcript quality is poor. Summary may be inaccurate. Please review the recording directly." It still generates a best-effort summary and action items, but the quality warning is prominent.</p>
+
+<h3>Duplicate Action Items Across Meetings</h3>
+
+<p>The same action item can come up in multiple meetings. "We need to update the landing page" gets discussed in week 1, then again in week 2 when it wasn't done yet. The Meeting Agent checks for existing tasks that match new action items. If there's already a task for "update the landing page" for this client, the agent flags it: "This action item may duplicate existing task #234. Review before approving."</p>
+
+<!-- ================================ -->
+<!-- OUTBOUND MESSAGE CAPTURE -->
+<!-- ================================ -->
+<h2>Outbound Message Capture</h2>
+
+<p>The system captures outbound messages, not just inbound. When you or a team member sends an email from Gmail (outside the app), replies to a text, or sends a WhatsApp message, the sent-mail folder and message history are ingested and logged to the appropriate client timeline.</p>
+
+<p>This ensures the timeline is complete. If Eddie replies to Ruthy from his phone at 10 PM, that response shows up in Nzymes' timeline the next morning. No one has to ask Eddie what he said.</p>
+
+<div class="callout">
+  <div class="callout-label">Why This Matters</div>
+  Without outbound capture, the system has blind spots. An agent drafts a reply, but you edit it in Gmail before sending - the original draft is in the system, but the actual sent message might be different. Outbound capture ensures the timeline reflects what was actually sent, not just what was drafted.
+</div>
+
+<!-- ================================ -->
+<!-- INITIATING OUTBOUND -->
+<!-- ================================ -->
+<h2>Initiating Outbound Communication</h2>
+
+<p>The system doesn't just process incoming messages - it also initiates outbound ones. This happens in two ways:</p>
+
+<ul>
+  <li><strong>Task-driven</strong> - you're working a task and tell the AI to send an email, text, or WhatsApp message. The AI drafts it, you approve, it sends through the appropriate channel. This is the most common pattern.</li>
+  <li><strong>System-driven</strong> - an agent determines that a message should be sent as part of an automated process. A report is ready to send. A follow-up is due. A scheduled check-in needs to go out. These always require your approval before sending unless you've explicitly marked them as auto-send (and even then, they're logged).</li>
+</ul>
+
+<p>All outbound messages - whether initiated from a task, from a workflow, or sent manually from Gmail - end up in the timeline.</p>
+
+<!-- ================================ -->
+<!-- ATTACHMENTS AND MEDIA -->
+<!-- ================================ -->
+<h2>Attachments and Media</h2>
+
+<p>Messages often include files. Brand asset PDFs, screenshots of ad issues, invoices, creative proofs. The system handles these:</p>
+
+<ul>
+  <li><strong>Attachments are stored</strong> and linked to the timeline event and any associated task. When you open a task, the attachments are right there.</li>
+  <li><strong>Known file types are processed</strong>. PDFs are made searchable. Images are viewable in the task thread. Spreadsheets are parsed if relevant to the task context.</li>
+  <li><strong>Large files are referenced, not inlined</strong>. A 50MB video file doesn't load inline in the task thread - it's linked and downloadable.</li>
+  <li><strong>Media from WhatsApp and SMS</strong> - voice notes, images, videos - are captured and stored alongside the message. Voice notes are transcribed when possible.</li>
+</ul>
+
+<div class="example">
+  <div class="example-label">Example: Attachment Handling</div>
+  <p style="margin:0;">ExclusiveMatchmaking sends an email with 3 PDF files: brand guidelines, logo variations, and a style guide. The Communication Agent creates a task: "ExclusiveMatchmaking - Brand assets received." The PDFs are attached to the task. The AI notes that there's a Blocked task waiting on brand assets, unblocks it, and adds the attachments to that task's context too. When you open the onboarding workflow, the brand guidelines are already there.</p>
+</div>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="04-tasks.html">&larr; 04. The Task System</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="06-monitoring.html">06. Monitoring &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

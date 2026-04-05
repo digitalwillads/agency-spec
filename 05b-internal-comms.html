@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>05b. Internal Communications - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="05b-internal-comms.html" class="current">05b. Internal Comms</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>Internal Communications</h1>
+<p class="page-subtitle">How team emails, internal meetings, and inter-team messages are handled. Same machinery, different routing.</p>
+
+<!-- ================================ -->
+<!-- THE PRINCIPLE -->
+<!-- ================================ -->
+<h2>Same Pipeline, Different Destination</h2>
+
+<p>Internal communications - Eddie emailing you about a client issue, a team sync meeting, Reileigh messaging about a deadline - go through the same ingestion and processing pipeline as everything else. TrashMan filters junk. The Communication agent reads, categorizes, and decides what to do.</p>
+
+<p>The only difference is where things land. The Communication agent asks one additional question for internal messages: <strong>is this about a client, or is this about us?</strong></p>
+
+<div class="diagram">
+  <div class="diagram-label">Internal Communication Routing</div>
+  <div class="mermaid">
+flowchart TD
+    MSG["Internal Message<br/>(team email, internal meeting,<br/>team chat)"] --> PROCESS["Same pipeline:<br/>TrashMan -> Comm Agent"]
+    PROCESS --> ABOUT{"What is this about?"}
+    ABOUT -->|"About a client"| CLIENT_TL["Client Timeline<br/>(attributed to the<br/>team member)"]
+    ABOUT -->|"About the business"| INTERNAL_TL["Internal Timeline"]
+    ABOUT -->|"Both"| BOTH["Both timelines"]
+
+    CLIENT_TL --> TASK_Q{"Needs action?"}
+    INTERNAL_TL --> TASK_Q2{"Needs action?"}
+    BOTH --> TASK_Q
+
+    TASK_Q -->|"Yes"| TASK["Create task"]
+    TASK_Q -->|"No"| DONE["Logged, no task"]
+    TASK_Q2 -->|"Yes"| TASK2["Create task"]
+    TASK_Q2 -->|"No"| DONE2["Logged, no task"]
+
+    style MSG fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style CLIENT_TL fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style INTERNAL_TL fill:#1f2d3d,stroke:#9b8ec4,color:#9b8ec4
+    style TASK fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style TASK2 fill:#1f2d3d,stroke:#9b8ec4,color:#9b8ec4
+  </div>
+</div>
+
+<div class="example">
+  <div class="example-label">Example: Three Internal Messages, Three Routes</div>
+  <p style="margin-bottom:8px;"><strong>Eddie emails you:</strong> "Hey, Stone & Tile's landing page has a broken form. I'm going to fix it today." This is about a client. It goes on Stone & Tile's timeline, attributed to Eddie. If it needs action from you, it becomes a task.</p>
+  <p style="margin-bottom:8px;"><strong>Reileigh emails you:</strong> "Can we push our team meeting to 3pm?" This is about the business, not a client. It goes on the internal timeline. Probably doesn't need a task - just context.</p>
+  <p style="margin:0;"><strong>Team sync meeting:</strong> You discuss Stone & Tile's campaign, Nzymes' onboarding progress, and hiring a new designer. The Stone & Tile items go on Stone & Tile's timeline. The Nzymes items go on Nzymes' timeline. The hiring discussion goes on the internal timeline. One meeting, three destinations.</p>
+</div>
+
+<!-- ================================ -->
+<!-- THE INTERNAL TIMELINE -->
+<!-- ================================ -->
+<h2>The Internal Timeline</h2>
+
+<p>Client timelines track what happens with each client. The internal timeline tracks what happens inside the agency itself - team decisions, operational changes, hiring, process updates, internal projects.</p>
+
+<p>It follows the exact same guarantees as client timelines:</p>
+
+<ul>
+  <li><strong>Append-only</strong> - entries are never edited or deleted</li>
+  <li><strong>Chronological</strong> - ordered by time</li>
+  <li><strong>Attributed</strong> - every entry records who or what created it</li>
+  <li><strong>Linked to source</strong> - meeting recordings, email threads, original documents</li>
+  <li><strong>Corrections, not edits</strong> - mistakes are corrected by appending, not rewriting</li>
+</ul>
+
+<p>Right now, the internal timeline is one stream for the whole agency. As the team grows and the business gets more complex, it can split into domain-specific timelines:</p>
+
+<table>
+  <tr>
+    <th>Timeline</th>
+    <th>What Goes Here</th>
+    <th>When to Split</th>
+  </tr>
+  <tr>
+    <td><strong>Internal (general)</strong></td>
+    <td>Everything that isn't client-specific. Team decisions, process changes, general operations.</td>
+    <td>V1 - this is the starting point</td>
+  </tr>
+  <tr>
+    <td><strong>Marketing</strong></td>
+    <td>Internal marketing strategy, content planning, brand discussions</td>
+    <td>When marketing becomes its own function with its own team</td>
+  </tr>
+  <tr>
+    <td><strong>Development</strong></td>
+    <td>Product development, tool building, technical decisions</td>
+    <td>When dev work is frequent enough to need its own history</td>
+  </tr>
+  <tr>
+    <td><strong>Fulfillment</strong></td>
+    <td>Client delivery operations, capacity planning, workload management</td>
+    <td>When fulfillment coordination is a daily activity</td>
+  </tr>
+  <tr>
+    <td><strong>HR</strong></td>
+    <td>Hiring, onboarding team members, performance, training</td>
+    <td>When the team is large enough to have HR as a function</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <div class="callout-label">Design Principle</div>
+  Start with one internal timeline. Split when it becomes hard to find things because there's too much unrelated information mixed together. The split should be driven by practical need, not organizational theory. If you never need to separate marketing from development, don't.
+</div>
+
+<!-- ================================ -->
+<!-- INTERNAL MEETINGS -->
+<!-- ================================ -->
+<h2>Internal Meetings</h2>
+
+<p>Internal meetings go through the same processing pipeline as client meetings - recorded, transcribed, action items extracted, batch review. The only difference is routing.</p>
+
+<table>
+  <tr>
+    <th>Meeting Type</th>
+    <th>Processing</th>
+    <th>Where It Lands</th>
+  </tr>
+  <tr>
+    <td><strong>Client meeting</strong><br/><em>(call with Ruthy at Nzymes)</em></td>
+    <td>Summary + action items extracted. Batch review.</td>
+    <td>Summary and action items go on Nzymes' timeline.</td>
+  </tr>
+  <tr>
+    <td><strong>Internal meeting, client-focused</strong><br/><em>(team sync about Stone & Tile strategy)</em></td>
+    <td>Same processing. Summary + action items.</td>
+    <td>Goes on Stone & Tile's timeline, attributed as internal discussion.</td>
+  </tr>
+  <tr>
+    <td><strong>Internal meeting, multi-topic</strong><br/><em>(weekly team sync covering 3 clients + hiring)</em></td>
+    <td>Same processing. Items attributed per topic.</td>
+    <td>Client items go on respective client timelines. Non-client items go on internal timeline.</td>
+  </tr>
+  <tr>
+    <td><strong>Internal meeting, no clients</strong><br/><em>(hiring discussion, process review)</em></td>
+    <td>Same processing. Summary + action items.</td>
+    <td>Everything goes on the internal timeline.</td>
+  </tr>
+</table>
+
+<div class="example">
+  <div class="example-label">Example: Weekly Team Sync</div>
+  <p style="margin-bottom:8px;">Friday team sync covers: Stone & Tile's budget issue (5 min), Nzymes onboarding status (3 min), ExclusiveMatchmaking's new campaign idea (4 min), and hiring a junior designer (8 min).</p>
+  <p style="margin-bottom:8px;">The meeting agent produces one summary and seven action items. It attributes each to the right destination:</p>
+  <ul style="margin:0;">
+    <li>Stone & Tile summary + 2 action items -> Stone & Tile's timeline</li>
+    <li>Nzymes update + 1 action item -> Nzymes' timeline</li>
+    <li>ExclusiveMatchmaking idea + 2 action items -> ExclusiveMatchmaking's timeline</li>
+    <li>Hiring discussion + 2 action items -> Internal timeline</li>
+  </ul>
+  <p style="margin-top:8px;">Each timeline entry links back to the recording at the relevant timestamp. The Nzymes entry links to 5:12 in the recording, not the beginning.</p>
+</div>
+
+<!-- ================================ -->
+<!-- TEAM EMAILS -->
+<!-- ================================ -->
+<h2>Team Emails and Messages</h2>
+
+<p>Emails between team members are ingested through the same pipeline. The Communication agent determines:</p>
+
+<ol>
+  <li><strong>Is this about a client?</strong> If Eddie emails you "Stone & Tile's form is broken" - that's about a client. It goes on Stone & Tile's timeline and may create a task.</li>
+  <li><strong>Is this internal operations?</strong> If Reileigh emails "Can we move the meeting?" - that's internal. It goes on the internal timeline. Probably no task needed.</li>
+  <li><strong>Is this noise?</strong> If it's "sounds good" or "ok thanks" - it doesn't need to be on any timeline. The agent lets it pass through without recording it.</li>
+</ol>
+
+<div class="callout">
+  <div class="callout-label">Key Point</div>
+  Internal communications are not second-class. They go through the same pipeline, get the same processing, and land on the right timeline with full attribution and source links. The only thing that differs is routing - client timeline vs. internal timeline. The system treats internal work as real work, because it is.
+</div>
+
+<!-- ================================ -->
+<!-- WHAT CHANGES, WHAT DOESN'T -->
+<!-- ================================ -->
+<h2>What Doesn't Change</h2>
+
+<p>As the team grows and internal communication volume increases:</p>
+
+<ul>
+  <li>The pipeline stays the same (TrashMan -> Comm Agent -> route to timeline)</li>
+  <li>The processing stays the same (categorize, check context, create task or log)</li>
+  <li>The meeting processing stays the same (transcribe, extract, attribute, batch review)</li>
+  <li>The timeline guarantees stay the same (append-only, chronological, attributed, linked)</li>
+</ul>
+
+<p>What changes: the internal timeline may split into multiple timelines as the business gets more complex. And the Communication agent gets better at routing as it sees more internal communication patterns. But the architecture doesn't change - just the number of timelines it can write to.</p>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="05-communication.html">&larr; 05. Communication</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="06-monitoring.html">06. Monitoring &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

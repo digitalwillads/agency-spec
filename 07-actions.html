@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>07. Actions - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html" class="current">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>Actions</h1>
+<p class="page-subtitle">The domain that executes work. Launching campaigns, adjusting budgets, creating assets, installing tracking - anything that changes state in the outside world.</p>
+
+<!-- ================================ -->
+<!-- WHAT ACTIONS IS -->
+<!-- ================================ -->
+<h2>What the Actions Domain Is</h2>
+
+<p>Communication processes incoming messages. Monitoring watches metrics. Actions <em>does things</em>. It's the domain where work happens that changes the state of the world - creating a new Google Ads campaign, building a landing page, installing conversion tracking, adjusting a Facebook ad set's targeting, writing ad copy.</p>
+
+<p>Every other domain can observe and recommend. Actions is what actually makes changes. When the Monitoring domain says "budget is over pace," it creates a task. When Actions processes that task, it logs into Google Ads and adjusts the budget cap. When Communication says "client wants a new campaign," it creates a task. When you work that task in the Actions domain, a campaign gets built and launched.</p>
+
+<p>The Actions domain has two operating modes: dedicated workflows for repeatable processes, and an open workspace for everything else.</p>
+
+<div class="diagram">
+  <div class="diagram-label">Actions Domain - Two Modes</div>
+  <div class="mermaid">
+flowchart LR
+    subgraph WORKFLOWS["Dedicated Workflows"]
+        W1["Client Onboarding"]
+        W2["Campaign Launch"]
+        W3["Tracking Install"]
+        W4["Creative Refresh"]
+    end
+
+    subgraph WORKSPACE["Open Workspace"]
+        WS["Interactive AI Session<br/><em>Any operational work<br/>that isn't a workflow</em>"]
+    end
+
+    TASK["Task from<br/>any domain"] --> DECIDE{"Matches a<br/>workflow?"}
+    DECIDE -->|Yes| WORKFLOWS
+    DECIDE -->|No| WORKSPACE
+
+    style TASK fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style DECIDE fill:#1f2d3d,stroke:#e6a731,color:#c9d1db
+    style WORKFLOWS fill:#141e2b,stroke:#14b8a6,color:#c9d1db
+    style WORKSPACE fill:#141e2b,stroke:#14b8a6,color:#c9d1db
+    style WS fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style W1 fill:#1f2d3d,stroke:#2a3a4d,color:#c9d1db
+    style W2 fill:#1f2d3d,stroke:#2a3a4d,color:#c9d1db
+    style W3 fill:#1f2d3d,stroke:#2a3a4d,color:#c9d1db
+    style W4 fill:#1f2d3d,stroke:#2a3a4d,color:#c9d1db
+  </div>
+</div>
+
+<!-- ================================ -->
+<!-- DEDICATED WORKFLOWS -->
+<!-- ================================ -->
+<h2>Dedicated Workflows</h2>
+
+<p>Some operational work follows a repeatable pattern. Every client onboarding has the same general steps. Every Google Ads campaign launch follows the same sequence. Every tracking installation verifies the same checkpoints. These get dedicated workflows - predefined sequences of steps with built-in validation.</p>
+
+<p>Workflows are covered in detail on the next page. The key point here is that workflows are one of two ways the Actions domain executes work. They handle the repeatable, structured stuff.</p>
+
+<div class="example">
+  <div class="example-label">Example: Workflow in Action</div>
+  <p style="margin:0;">ExclusiveMatchmaking is a new client. Their onboarding kicks off a workflow: (1) gather brand assets and access credentials, (2) audit existing ad accounts, (3) set up conversion tracking, (4) build campaign structure, (5) create ad copy and creatives, (6) launch and activate monitoring. Each step is a task in the queue. Some steps can't proceed until the previous one completes. Some steps are blocked on client deliverables. The workflow tracks all of it.</p>
+</div>
+
+<!-- ================================ -->
+<!-- THE WORKSPACE -->
+<!-- ================================ -->
+<h2>The Workspace</h2>
+
+<p>Not everything fits a workflow. A client asks for a one-off landing page. You want to experiment with a new audience targeting approach. A campaign needs a structural overhaul that doesn't match any predefined pattern. Stone & Tile wants to try Performance Max and nobody's built that workflow yet.</p>
+
+<p>This is what the workspace is for. It's an interactive AI session with full access to the Actions domain's tools - ad platform APIs, website builders, creative tools, tracking systems - where you work collaboratively with the AI on operational tasks that don't follow a predefined sequence.</p>
+
+<h3>The Workspace Is Permanent and First-Class</h3>
+
+<p>The workspace is not a fallback. It's not the thing you use "when there's no workflow for this." It's a permanent, first-class feature of the system. The agency does novel work constantly. New platforms, new strategies, one-off requests, creative experiments. The workspace is where all of that happens.</p>
+
+<p>Workflows will grow over time as patterns emerge. But the workspace is always there for the work that hasn't been codified yet - and for the work that never will be, because it's genuinely unique each time.</p>
+
+<div class="callout">
+  <div class="callout-label">The Relationship Between Workflows and Workspace</div>
+  Think of it this way: workflows are the playbook. The workspace is the field. Most plays come from the playbook, but you can always call an audible. And sometimes, a play you improvised in the workspace works so well that it gets added to the playbook as a new workflow.
+</div>
+
+<h3>How the Workspace Works</h3>
+
+<p>You open the workspace from a task or directly from the interface. The AI loads the relevant client context (timeline, ad account data, whatever is appropriate) and you start working. It's a conversation, just like a task thread, but with a broader scope - you're not resolving a single issue, you're building something.</p>
+
+<div class="example">
+  <div class="example-label">Example: Workspace Session - New Campaign Type</div>
+  <p style="margin-bottom:8px;">Stone & Tile wants to try Performance Max campaigns. There's no workflow for this because it's the first time you're doing it.</p>
+  <p style="margin-bottom:8px;">You open a workspace session for Stone & Tile. The AI loads their current campaign structure, historical performance, brand assets, and conversion data. You tell it: "Let's build a Performance Max campaign. Start with their top-performing product categories."</p>
+  <p style="margin-bottom:8px;">The AI proposes a campaign structure - asset groups, audience signals, budget allocation. You discuss, iterate, adjust. The AI builds the campaign in Google Ads (you approve each step). It sets up the conversion goals, uploads the creative assets, configures the audience signals.</p>
+  <p style="margin:0;">When it's done, the entire session is logged. Every decision, every change, every approval. If Performance Max works well for Stone & Tile and you want to do it for other clients, the session becomes the basis for a new workflow.</p>
+</div>
+
+<h3>Context Persists Across Sessions</h3>
+
+<p>A workspace session doesn't have to be completed in one sitting. You can start building a campaign, close the session, come back the next day, and pick up where you left off. The AI has the full conversation history, all the context that was loaded, and remembers what was decided and what's still pending.</p>
+
+<p>This is different from a task thread, which is typically resolved in one session. Workspace sessions can span days or weeks for complex projects - a full website build, a multi-phase campaign restructure, an extensive creative refresh across all platforms.</p>
+
+<div class="example">
+  <div class="example-label">Example: Multi-Day Workspace Session</div>
+  <p style="margin-bottom:8px;">You're building a new website for ExclusiveMatchmaking. Day 1: you and the AI review the brand guidelines, discuss the target audience, and outline the sitemap. Day 2: you work through the homepage layout and copy together - the AI drafts sections, you refine. Day 3: you build out the services pages and the contact form. Day 4: you review the whole site, make final edits, connect the domain, and launch.</p>
+  <p style="margin:0;">Each day, you open the same workspace session. The AI knows everything that happened on previous days. When you say "move the testimonials section we wrote on Tuesday above the pricing," it knows exactly what you're referring to.</p>
+</div>
+
+<!-- ================================ -->
+<!-- WHAT TOOLS ACTIONS HAS -->
+<!-- ================================ -->
+<h2>What Actions Can Do</h2>
+
+<p>The Actions domain is the one with <strong>write access</strong> to the outside world. Other domains read data and create tasks. Actions actually changes things - launches campaigns, builds websites, installs tracking, creates ads.</p>
+
+<p>The specific platforms and tools will grow over time. What matters architecturally is the principle: Actions agents can modify external systems, and every modification is logged to the client timeline with full detail - what was changed, from what to what, who approved it, when. Nothing happens silently.</p>
+
+<!-- ================================ -->
+<!-- APPROVAL PATTERN -->
+<!-- ================================ -->
+<h2>The Approval Pattern</h2>
+
+<p>The Actions domain follows a consistent pattern: the AI proposes, you approve, the AI executes. This applies everywhere - in workflows and in workspace sessions.</p>
+
+<ul>
+  <li>The AI doesn't launch a campaign without your approval.</li>
+  <li>The AI doesn't adjust a budget without your approval (unless it's a Monitoring auto-fix, which is a different domain with its own rules).</li>
+  <li>The AI doesn't send creative to a client without your approval.</li>
+  <li>The AI doesn't install tracking on a live website without your approval.</li>
+</ul>
+
+<p>Every approval is logged. If something goes wrong, you can trace back to the exact moment the action was approved and see the context around the decision.</p>
+
+<div class="example">
+  <div class="example-label">Example: Approval in Practice</div>
+  <p style="margin-bottom:8px;">You're in a workspace session building a new Facebook campaign for TheRealSleep. The AI proposes:</p>
+  <p style="margin-bottom:8px;">"Here's the campaign structure: 3 ad sets (TOFU, MOFU, BOFU), $50/day budget split 40/30/30, optimized for purchases. TOFU targets broad interest audience, MOFU targets website visitors (30 days), BOFU targets add-to-cart abandoners (7 days). I've drafted 4 ad variations per ad set. Ready to review?"</p>
+  <p style="margin-bottom:8px;">You review the structure, ask the AI to change BOFU from 7-day to 14-day window, approve the rest. The AI makes the change and presents the final version. You say "launch it."</p>
+  <p style="margin:0;">The AI creates the campaign in Meta Ads, activates it, logs the full details to TheRealSleep's timeline, and activates the relevant monitoring rules. All in one session.</p>
+</div>
+
+<!-- ================================ -->
+<!-- WHAT'S NEXT -->
+<!-- ================================ -->
+<h2>What's Next</h2>
+
+<p>This page covered what the Actions domain is and how it operates. The next page goes deep on workflows - the structured, repeatable side of Actions. What a workflow is, how steps work, how blocking and dependencies are managed, and the specific workflows the system ships with.</p>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="06-monitoring.html">&larr; 06. Monitoring</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="08-workflows.html">08. Workflows &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

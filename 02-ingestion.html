@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02. Ingestion - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html" class="current">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>Ingestion</h1>
+<p class="page-subtitle">How data gets into the system, how it's stored, and how agents retrieve it. The pattern that stays the same no matter what we connect to.</p>
+
+<!-- ================================ -->
+<!-- THE PROBLEM -->
+<!-- ================================ -->
+<h2>The Problem</h2>
+
+<p>The agency's data lives in a dozen different places - Gmail, Google Ads, Facebook, Stripe, meeting recordings, text messages. Each has its own API, its own format, its own quirks. An agent that needs to understand a client's situation shouldn't have to know how to talk to all of them. It should just ask: "What's been happening with Nzymes lately?" and get an answer.</p>
+
+<p>The ingestion layer solves this. It sits between the outside world and the agents, handling two jobs:</p>
+
+<ol>
+  <li><strong>Pull data in</strong> from external sources on a continuous basis</li>
+  <li><strong>Normalize and store it</strong> so agents can retrieve it without knowing where it came from</li>
+</ol>
+
+<!-- ================================ -->
+<!-- THE PATTERN -->
+<!-- ================================ -->
+<h2>The Pattern</h2>
+
+<p>Every data source - whether it exists today or gets added next year - follows the same four-step pattern:</p>
+
+<div class="diagram">
+  <div class="diagram-label">Ingestion Pattern (universal)</div>
+  <div class="mermaid">
+flowchart LR
+    SOURCE["External<br/>Source"] -->|"API / Webhook /<br/>Polling"| CONNECT["Connect"]
+    CONNECT -->|"Raw data"| NORMALIZE["Normalize"]
+    NORMALIZE -->|"Standard format"| STORE["Store"]
+    STORE -->|"Query"| RETRIEVE["Retrieve"]
+
+    style SOURCE fill:#1f2d3d,stroke:#2a3a4d,color:#c9d1db
+    style CONNECT fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style NORMALIZE fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style STORE fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style RETRIEVE fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+  </div>
+</div>
+
+<h3>1. Connect</h3>
+<p>Get access to the data. This is the only part that's different for every source - each API has its own authentication, its own rate limits, its own way of delivering data. Some push to us (webhooks), some we pull from (polling), some we do both. The connection method is an implementation detail specific to each source.</p>
+
+<h3>2. Normalize</h3>
+<p>Transform the raw data into a common format the rest of the system understands. An email from Gmail, a text from iMessage, and a WhatsApp message are all fundamentally the same thing: a message from someone, with content, at a time. They should look the same to the agents that process them.</p>
+
+<div class="callout">
+  <div class="callout-label">Key Principle</div>
+  Normalization makes the <em>format</em> consistent - agents don't need to deal with Gmail API quirks vs WhatsApp API quirks. But the <strong>source is preserved as metadata</strong>. The agent knows Ruthy sent a WhatsApp message, not just "a message from Ruthy." This matters: it needs to reply on the right channel, and if she reached out via WhatsApp AND email about the same thing, that multi-channel reach-out is itself a signal worth noticing.
+</div>
+
+<h3>3. Store</h3>
+<p>Persist the normalized data so it can be retrieved later. This is where the timeline comes in (covered in detail on the next page). But the principle is: <strong>store once, read many times.</strong> Data that enters the system is written to a durable store and then read by as many agents as need it. No agent should have to go back to the original source to re-fetch data that's already been ingested.</p>
+
+<h3>4. Retrieve</h3>
+<p>Give agents a clean way to query what they need. An agent should be able to ask things like:</p>
+<ul>
+  <li>"Give me Nzymes' last 30 days of communications"</li>
+  <li>"What ad changes happened for Stone & Tile this week?"</li>
+  <li>"Is ExclusiveMatchmaking's invoice paid?"</li>
+  <li>"Show me all meetings from last Friday"</li>
+</ul>
+<p>The retrieval layer translates these questions into queries against the stored data. The agent doesn't need to know the storage format, the database schema, or which original source the data came from.</p>
+
+<!-- ================================ -->
+<!-- THREE TYPES OF DATA -->
+<!-- ================================ -->
+<h2>Three Types of Data</h2>
+
+<p>Not all data is the same. How you ingest, store, and retrieve it depends on what kind of data it is:</p>
+
+<table>
+  <tr>
+    <th>Type</th>
+    <th>What It Is</th>
+    <th>Storage Philosophy</th>
+    <th>Examples</th>
+  </tr>
+  <tr>
+    <td><strong>Events</strong></td>
+    <td>Things that happened at a point in time. Immutable once recorded.</td>
+    <td>Append-only. Never modified, never deleted. This is the timeline.</td>
+    <td>Emails received, meetings held, invoices paid, ads changed, tasks completed</td>
+  </tr>
+  <tr>
+    <td><strong>State</strong></td>
+    <td>The current condition of something. Changes over time.</td>
+    <td>Current snapshot, updated when it changes. History of changes tracked as events.</td>
+    <td>Campaign budget ($62/day right now), website status (up/down right now), invoice status (paid/unpaid right now)</td>
+  </tr>
+  <tr>
+    <td><strong>Content</strong></td>
+    <td>Files, documents, media. Larger, less structured.</td>
+    <td>Stored as files, referenced by events. Not stored inline in the timeline.</td>
+    <td>Email attachments, meeting recordings, brand asset PDFs, ad creative images</td>
+  </tr>
+</table>
+
+<div class="example">
+  <div class="example-label">Example: An Email Arrival</div>
+  <p style="margin-bottom:8px;">Ruthy from Nzymes sends an email with a PDF attached asking about CPA numbers.</p>
+  <p style="margin-bottom:8px;"><strong>Event:</strong> "email_received from Ruthy at Nzymes, April 3, 4:12 PM" - appended to Nzymes' timeline. Immutable.</p>
+  <p style="margin-bottom:8px;"><strong>State:</strong> Nzymes' latest communication status updates to "pending response." This is mutable - it'll change to "responded" when you reply.</p>
+  <p style="margin:0;"><strong>Content:</strong> The PDF attachment is stored as a file and linked to the timeline event. The event says "attachment: Q1-report.pdf" with a reference to where it lives.</p>
+</div>
+
+<!-- ================================ -->
+<!-- REAL-TIME VS SCHEDULED -->
+<!-- ================================ -->
+<h2>When Data Comes In</h2>
+
+<p>Some data needs to arrive immediately. Some can wait. The ingestion layer handles both:</p>
+
+<table>
+  <tr>
+    <th>Pattern</th>
+    <th>When to Use</th>
+    <th>How It Works</th>
+  </tr>
+  <tr>
+    <td><strong>Real-time (push)</strong></td>
+    <td>When delay matters. Client messages, payment events, website outages.</td>
+    <td>The source pushes data to us via webhooks or push notifications. We process it immediately.</td>
+  </tr>
+  <tr>
+    <td><strong>Near-real-time (poll)</strong></td>
+    <td>When the source doesn't support push. Email inboxes, sent-mail folders.</td>
+    <td>We check the source frequently (every 1-2 minutes). Close to real-time, but not instant.</td>
+  </tr>
+  <tr>
+    <td><strong>Scheduled (batch)</strong></td>
+    <td>When freshness is less critical. Ad performance data, weekly metrics.</td>
+    <td>We pull data on a defined schedule (every 4 hours, daily, weekly). Frequency depends on the monitoring rules that use the data.</td>
+  </tr>
+</table>
+
+<div class="callout">
+  <div class="callout-label">Principle</div>
+  Client messages should appear in the system within minutes. Ad performance data can lag hours. Website outages should be detected within minutes. The ingestion cadence matches the urgency of the data.
+</div>
+
+<!-- ================================ -->
+<!-- HANDLING VOLUME -->
+<!-- ================================ -->
+<h2>Handling Volume</h2>
+
+<p>Sometimes a lot of data arrives at once. A new team member's inbox is connected and 10,000 historical emails need ingesting. A client CC's you on a 30-email internal thread. A spam campaign hits an inbox with 200 messages in an hour.</p>
+
+<p>The ingestion layer handles this with three principles:</p>
+
+<ul>
+  <li><strong>Queue, don't drop.</strong> Every piece of data that arrives gets queued for processing. Nothing is thrown away because the system is busy. If there's a backlog, it works through it in order.</li>
+  <li><strong>Most recent first.</strong> During a historical backfill (connecting a new inbox), process in reverse chronological order. The most recent messages are the most important and should be available first.</li>
+  <li><strong>Batch from the same source.</strong> If one person sends 5 messages in 5 minutes, they're batched and processed as a group rather than creating 5 separate tasks. (The Communication agents handle this batching - see page 05.)</li>
+</ul>
+
+<!-- ================================ -->
+<!-- EXTENSIBILITY -->
+<!-- ================================ -->
+<h2>Adding New Sources</h2>
+
+<p>The ingestion layer is designed to grow. Today we connect to Gmail, ad platforms, Stripe, and meeting recordings. Next month it might be TikTok Ads. Next quarter it might be a CRM system or call tracking.</p>
+
+<p>Adding a new source means building one new connector that follows the same four-step pattern: connect, normalize, store, retrieve. The rest of the system - the agents, the timeline, the task queue, the interface - doesn't change. It just starts receiving a new type of data in the same format it already understands.</p>
+
+<div class="callout">
+  <div class="callout-label">Design Principle</div>
+  The cost of adding a new data source should be writing one connector. Not refactoring the agents. Not changing the timeline schema. Not updating the interface. One connector, and the entire system can use the new data.
+</div>
+
+<h3>Current Sources</h3>
+<p>For reference, these are the sources we're starting with. Each one needs a connector built:</p>
+
+<table>
+  <tr>
+    <th>Category</th>
+    <th>Sources</th>
+    <th>Ingestion Pattern</th>
+  </tr>
+  <tr>
+    <td><strong>Communication</strong></td>
+    <td>Gmail (Will + team inboxes + sent-mail), SMS/iMessage, WhatsApp, meeting recordings</td>
+    <td>Push/webhooks where available, polling as fallback</td>
+  </tr>
+  <tr>
+    <td><strong>Advertising</strong></td>
+    <td>Google Ads, Facebook/Meta Ads</td>
+    <td>Scheduled polling (frequency per monitoring rule)</td>
+  </tr>
+  <tr>
+    <td><strong>Infrastructure</strong></td>
+    <td>Client websites (uptime, SSL, speed), conversion tracking (pixels, tags)</td>
+    <td>Scheduled health checks</td>
+  </tr>
+  <tr>
+    <td><strong>Business Ops</strong></td>
+    <td>Stripe (billing), contracts/eSign, email campaign platforms</td>
+    <td>Webhooks for payment events, polling for status</td>
+  </tr>
+</table>
+
+<h3>Future Sources (not in V1)</h3>
+<p>On the radar: TikTok Ads, LinkedIn Ads, SEO rank tracking, call tracking/recording, CRM pipeline data, client portal activity. The architecture should be designed knowing these are coming.</p>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="01-the-system.html">&larr; 01. The System</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="03-timeline.html">03. The Timeline &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>

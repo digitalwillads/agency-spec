@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>10. Cross-Agent Intelligence - Agency Command Center</title>
+<link rel="stylesheet" href="styles.css">
+<script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Agency Spec</div>
+  <a href="01-the-system.html">01. The System</a>
+  <a href="02-ingestion.html">02. Ingestion</a>
+  <a href="03-timeline.html">03. The Timeline</a>
+  <a href="04-tasks.html">04. The Task System</a>
+  <div class="divider"></div>
+  <a href="05-communication.html">05. Communication</a>
+  <a href="06-monitoring.html">06. Monitoring</a>
+  <a href="07-actions.html">07. Actions</a>
+  <a href="08-workflows.html">08. Workflows</a>
+  <a href="09-reporting-admin.html">09. Reporting & Admin</a>
+  <div class="divider"></div>
+  <a href="10-cross-agent.html" class="current">10. Cross-Agent Intelligence</a>
+  <a href="11-interface.html">11. The Interface</a>
+</nav>
+
+<main>
+
+<h1>Cross-Agent Intelligence</h1>
+<p class="page-subtitle">What happens when agents don't just share data - they consult each other. The difference between a collection of tools and an actual system.</p>
+
+<!-- ================================ -->
+<!-- THE CONCEPT -->
+<!-- ================================ -->
+<h2>The Concept</h2>
+
+<p>Every agent in the system reads from the same timeline and writes to the same task queue. That's coordination - shared data, shared work list. But cross-agent intelligence goes a step further: agents actively query each other during processing.</p>
+
+<p>When the Communication agent is creating a task for a client email, it doesn't just read the timeline. It asks the Monitoring domain: "Are there any active issues with this client's campaigns?" It asks Admin: "Are there any billing issues?" It asks Setup: "Is this client mid-onboarding?" The answers change how the task is created, what context is loaded, and what priority it gets.</p>
+
+<p>This isn't a scheduled batch process. It happens in real time, during the normal flow of work. An agent processing an event makes targeted queries to other domains to enrich its understanding before it acts.</p>
+
+<div class="callout">
+  <div class="callout-label">Why This Matters</div>
+  Without cross-agent queries, each domain operates with tunnel vision. The Communication agent knows about messages. The Monitoring agent knows about campaigns. Admin knows about billing. They can all read the timeline, but they can't ask each other "what's happening right now in your world?" Cross-agent queries close that gap.
+</div>
+
+<!-- ================================ -->
+<!-- DIRECT DOMAIN RELATIONSHIPS -->
+<!-- ================================ -->
+<h2>Direct Domain Relationships</h2>
+
+<p>Not every domain needs to talk to every other domain. The relationships are specific and purposeful. Here are the direct query paths that exist between domains:</p>
+
+<table>
+  <tr>
+    <th>Querying Domain</th>
+    <th>Queries</th>
+    <th>What It Asks</th>
+    <th>Why</th>
+  </tr>
+  <tr>
+    <td><strong>Admin</strong></td>
+    <td>Reporting</td>
+    <td>"What's the next scheduled communication for this client?"</td>
+    <td>So Admin can alert Reporting to adjust tone before a report goes out to a client with billing issues.</td>
+  </tr>
+  <tr>
+    <td><strong>Setup</strong></td>
+    <td>Reporting</td>
+    <td>"This client has a blocked onboarding step. Can you follow up?"</td>
+    <td>So blocked workflow steps trigger client follow-up through the proper channel (Reporting) rather than an ad-hoc message.</td>
+  </tr>
+  <tr>
+    <td><strong>Setup</strong></td>
+    <td>Monitoring</td>
+    <td>"Campaigns are live. Activate monitoring rules with a 72-hour grace period."</td>
+    <td>The Setup-to-Monitoring handoff. When a workflow reaches the launch step, Monitoring needs to start watching.</td>
+  </tr>
+  <tr>
+    <td><strong>Monitoring</strong></td>
+    <td>Reporting</td>
+    <td>"Here's this client's performance data for the current period."</td>
+    <td>So Reporting can include accurate, up-to-date performance metrics in client reports without duplicating monitoring logic.</td>
+  </tr>
+  <tr>
+    <td><strong>Monitoring</strong></td>
+    <td>Communication</td>
+    <td>"Has this client mentioned anything about [campaign/issue] recently?"</td>
+    <td>When Monitoring detects an anomaly, it checks if the client already reported it or if there's context from a recent conversation that explains it.</td>
+  </tr>
+  <tr>
+    <td><strong>Communication</strong></td>
+    <td>Monitoring</td>
+    <td>"What's the current state of this client's campaigns?"</td>
+    <td>When a client emails asking about performance, Communication can pull live data to provide context for the response.</td>
+  </tr>
+</table>
+
+<div class="example">
+  <div class="example-label">Example: A Cross-Agent Query in Action</div>
+  <p style="margin-bottom:8px;">Ruthy emails: "Hey - I noticed our conversions look low this week. What's going on?"</p>
+  <p style="margin-bottom:8px;">The Communication agent processes the email. Before creating the task, it queries Monitoring: "Any active issues with Nzymes' conversions?"</p>
+  <p style="margin-bottom:8px;">Monitoring responds: "Yes - detected a 40% conversion drop on March 30. Root cause: Facebook pixel stopped firing after a website update on March 29. Auto-fix was not possible (requires code change). A task was created for manual fix, currently in progress."</p>
+  <p style="margin:0;">Now when Communication creates the task for Ruthy's email, it includes all of this context. You open the task and see: Ruthy's email, the known conversion issue, the root cause, and what's being done about it. The AI drafts a reply that addresses her question directly: "We caught this too. The website update on the 29th broke the pixel. Isaac is fixing it now, should be back up by end of day." You didn't have to investigate. The cross-agent query already assembled the full picture.</p>
+</div>
+
+<!-- ================================ -->
+<!-- EMERGENT PROPERTIES -->
+<!-- ================================ -->
+<h2>Emergent Properties</h2>
+
+<p>The real power of cross-agent intelligence isn't any single query - it's what happens when multiple queries combine during ordinary workflows. The system becomes more than the sum of its parts. Here's a comparison of how common scenarios play out with and without cross-agent queries:</p>
+
+<table>
+  <tr>
+    <th>Scenario</th>
+    <th>Without Cross-Agent Queries</th>
+    <th>With Cross-Agent Queries</th>
+  </tr>
+  <tr>
+    <td><strong>Client asks about campaign performance</strong></td>
+    <td>Communication creates a task with the email. You open it, pull up Google Ads yourself, check Facebook Ads, look at the timeline for recent changes, piece together the picture manually.</td>
+    <td>Communication queries Monitoring for live performance data, checks for any active alerts, pulls recent changes from the timeline. The task opens with the full picture already assembled: metrics, trends, recent actions, and a draft reply with the numbers.</td>
+  </tr>
+  <tr>
+    <td><strong>Conversion drop detected</strong></td>
+    <td>Monitoring creates an alert. Separately, a client email arrives about the same issue. Two independent tasks, no connection between them.</td>
+    <td>Monitoring creates the alert and queries Communication: "Has this client mentioned conversions recently?" Communication, processing the email, queries Monitoring: "Any known issues?" Both tasks are linked. When you open either one, you see the full context: the detected issue, the client's email about it, and the proposed response.</td>
+  </tr>
+  <tr>
+    <td><strong>Meeting generates an action item to adjust budget</strong></td>
+    <td>Communication extracts the action item and creates a task. You work the task, manually adjust the budget in Google Ads, manually verify the change.</td>
+    <td>Communication extracts the action item, queries Monitoring for current spend pacing and campaign performance. The task includes: the action item, current budget data, pacing status, and a recommendation on how to implement the change. Monitoring is pre-notified that a budget change is coming so it doesn't fire a false alert.</td>
+  </tr>
+  <tr>
+    <td><strong>Overdue invoice detected</strong></td>
+    <td>Admin creates a billing task. The next week, Reporting sends a cheerful performance update completely unaware of the billing problem.</td>
+    <td>Admin creates the billing task AND notifies Reporting. Reporting adjusts the tone of the next outbound communication, includes a mention of the outstanding balance, and holds off on any upsell language. The client gets a message that's professional and aware of the full relationship state.</td>
+  </tr>
+  <tr>
+    <td><strong>New client onboarding begins</strong></td>
+    <td>Setup creates the workflow. Each step proceeds independently. If a step gets blocked, nobody follows up until someone notices.</td>
+    <td>Setup creates the workflow. It notifies Monitoring to prepare rules for the eventual campaign launch. It notifies Reporting that this is a new client (first 90 days = weekly reports). When a step gets blocked, Setup queries Reporting to trigger follow-up. When campaigns launch, Setup queries Monitoring to activate rules with a grace period. Every domain knows what's happening and adjusts automatically.</td>
+  </tr>
+</table>
+
+<!-- ================================ -->
+<!-- THE NETWORK EFFECT -->
+<!-- ================================ -->
+<h2>The Network Effect</h2>
+
+<p>The math is straightforward. The system has 5 domains. Each domain can query up to 4 others. That's up to 20 possible consultation paths. But the value isn't linear - it's compounding.</p>
+
+<div class="diagram">
+  <div class="diagram-label">Cross-Agent Query Network</div>
+  <div class="mermaid">
+flowchart TD
+    COMM["Communication"] <--> MON["Monitoring"]
+    COMM --> SETUP["Setup"]
+    SETUP --> MON
+    SETUP --> REP["Reporting"]
+    MON --> REP
+    MON --> COMM
+    ADMIN["Admin"] --> REP
+    ADMIN --> COMM
+
+    style COMM fill:#1f2d3d,stroke:#14b8a6,color:#14b8a6
+    style MON fill:#1f2d3d,stroke:#e6a731,color:#e6a731
+    style SETUP fill:#1f2d3d,stroke:#14b8a6,color:#c9d1db
+    style REP fill:#1f2d3d,stroke:#9b8ec4,color:#9b8ec4
+    style ADMIN fill:#1f2d3d,stroke:#e05252,color:#e05252
+  </div>
+</div>
+
+<p>Every new domain added to the system doesn't just add its own capabilities - it enriches every other domain's ability to make decisions. When Monitoring gets smarter (new platforms, better anomaly detection), Communication gets smarter too (better answers to client questions about performance). When Admin gets more data (contract details, billing history), Reporting gets more nuanced (better tone adjustment, more informed follow-ups).</p>
+
+<p>This is the network effect. Individual agents are useful. Connected agents are powerful. The connections between domains compound the value of each domain's intelligence.</p>
+
+<div class="example">
+  <div class="example-label">Example: Compounding Intelligence</div>
+  <p style="margin-bottom:8px;">A single event - Ruthy's email asking about CPA - triggers a cascade of cross-agent queries:</p>
+  <p style="margin-bottom:8px;"><strong>1.</strong> Communication reads the email, queries Monitoring for current CPA data.</p>
+  <p style="margin-bottom:8px;"><strong>2.</strong> Monitoring returns the data, plus a note: "CPA improved 17% this week after the negative keyword cleanup."</p>
+  <p style="margin-bottom:8px;"><strong>3.</strong> Communication queries Admin: "Any billing issues with Nzymes?" Admin responds: "No issues. Invoice paid on time."</p>
+  <p style="margin-bottom:8px;"><strong>4.</strong> Communication queries Setup: "Is Nzymes mid-workflow?" Setup responds: "No active workflows."</p>
+  <p style="margin:0;"><strong>5.</strong> The task is created with: Ruthy's email, live CPA numbers, the context that the improvement came from a specific action (negative keyword cleanup), clean billing status, and no pending workflow items. The AI drafts a reply that's informed by all five domains. You glance at it, it's perfect, you hit send.</p>
+</div>
+
+<!-- ================================ -->
+<!-- GUARDRAILS -->
+<!-- ================================ -->
+<h2>Guardrails</h2>
+
+<p>Cross-agent queries are powerful, but they need constraints. Unchecked, they could create cascading loops, performance problems, or opaque decision-making. Here are the guardrails:</p>
+
+<table>
+  <tr>
+    <th>Guardrail</th>
+    <th>Rule</th>
+    <th>Why</th>
+  </tr>
+  <tr>
+    <td><strong>Read-Only</strong></td>
+    <td>Cross-agent queries are read-only. A querying agent can ask another domain for information, but it cannot modify that domain's state or trigger actions in it.</td>
+    <td>Prevents side effects. When Communication queries Monitoring, it gets data back - it doesn't inadvertently trigger a monitoring action.</td>
+  </tr>
+  <tr>
+    <td><strong>Query Budget</strong></td>
+    <td>Each task has a maximum number of cross-agent queries it can make (default: 5). If an agent needs more, it must justify the additional queries.</td>
+    <td>Prevents runaway query chains where one event triggers dozens of cross-domain lookups. Keeps processing efficient and predictable.</td>
+  </tr>
+  <tr>
+    <td><strong>One Level Deep</strong></td>
+    <td>Cross-agent queries do not chain. If Communication queries Monitoring, Monitoring answers with its own data. It does not make additional cross-agent queries to answer Communication's question.</td>
+    <td>Prevents circular dependencies and exponential query expansion. A queries B, B answers. B does not query C to answer A. If deeper context is needed, it surfaces as a recommendation for the user.</td>
+  </tr>
+  <tr>
+    <td><strong>Graceful Degradation</strong></td>
+    <td>If a cross-agent query fails (timeout, error, unavailable domain), the requesting agent proceeds without that data. It notes the failure in the task context but does not block processing.</td>
+    <td>No single domain failure should cascade to the entire system. If Monitoring is temporarily unavailable, Communication still creates the task - it just lacks the Monitoring context. The user sees a note: "Monitoring data unavailable at time of processing."</td>
+  </tr>
+  <tr>
+    <td><strong>Transparency</strong></td>
+    <td>Every cross-agent query is logged. When you open a task, you can see which domains were consulted and what they returned. Nothing is hidden.</td>
+    <td>The user should always understand why the system made a decision. If a task is HIGH priority because Admin reported billing issues, that query and its result are visible in the task's preprocessing details.</td>
+  </tr>
+</table>
+
+<div class="example">
+  <div class="example-label">Example: Transparency in Practice</div>
+  <p style="margin-bottom:8px;">You open a task for ExclusiveMatchmaking's email. The preprocessing section shows:</p>
+  <p style="margin-bottom:8px;"><strong>Cross-Agent Queries:</strong></p>
+  <p style="margin-bottom:8px;">&nbsp;&nbsp;Monitoring: "Any active issues?" - Response: "No active alerts. Campaigns performing within normal range."</p>
+  <p style="margin-bottom:8px;">&nbsp;&nbsp;Admin: "Any billing issues?" - Response: "Invoice #1289 is 15 days overdue ($3,500)."</p>
+  <p style="margin-bottom:8px;">&nbsp;&nbsp;Setup: "Active workflows?" - Response: "No active workflows."</p>
+  <p style="margin:0;">You can see exactly why the task was flagged with a billing context note and why the draft reply includes a professional (rather than cheerful) tone. The system's reasoning is fully visible.</p>
+</div>
+
+<div class="callout">
+  <div class="callout-label">Design Principle</div>
+  Cross-agent intelligence should feel invisible when it works correctly. The user doesn't think "the Communication agent queried Monitoring." They think "oh, the system already knows about the conversion drop when Ruthy asked about it." The guardrails exist to keep the magic reliable without making it fragile.
+</div>
+
+<!-- ================================ -->
+<!-- PAGE NAV -->
+<!-- ================================ -->
+<div class="page-nav">
+  <div>
+    <div class="label">Previous</div>
+    <a href="09-reporting-admin.html">&larr; 09. Reporting & Admin</a>
+  </div>
+  <div style="text-align:right;">
+    <div class="label">Next</div>
+    <a href="11-interface.html">11. The Interface &rarr;</a>
+  </div>
+</div>
+
+</main>
+
+<script>
+mermaid.initialize({
+  startOnLoad: true,
+  theme: 'dark',
+  themeVariables: {
+    darkMode: true, primaryColor: '#1f2d3d', primaryTextColor: '#c9d1db',
+    primaryBorderColor: '#14b8a6', lineColor: '#14b8a6', secondaryColor: '#141e2b',
+    tertiaryColor: '#141e2b', background: '#1a2636', mainBkg: '#1f2d3d',
+    nodeBorder: '#14b8a6', clusterBkg: '#141e2b', clusterBorder: '#2a3a4d',
+    titleColor: '#c9d1db', edgeLabelBackground: '#141e2b', nodeTextColor: '#c9d1db',
+  },
+  flowchart: { curve: 'basis', padding: 16 },
+});
+</script>
+</body>
+</html>
